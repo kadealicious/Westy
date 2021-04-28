@@ -1,2 +1,0 @@
-# westy
- Messin with OpenGL :)
