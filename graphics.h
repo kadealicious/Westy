@@ -2,12 +2,11 @@
 #define GRAPHICS_H_
 
 #include"globals.h"
-#include"camera.h"
 
-unsigned short wsGraphicsInit();
-void wsGraphicsRender();
-void wsGraphicsTerminate();
+void GraphicsInit();
+void GraphicsRender();
+void GraphicsTerminate();
 
-void wsGraphicsLoadTexture(const char *path, unsigned int *dest_texture, unsigned int gl_texture_unit, unsigned int wrap_style, unsigned int filter_style);
+float GraphicsGetRandomColorChannel();
 
 #endif
