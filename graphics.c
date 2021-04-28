@@ -30,6 +30,8 @@ unsigned int text_shader;
 unsigned int light_shader;
 unsigned int cube_shader;
 
+static unsigned int next_avaliable_texture_unit = GL_TEXTURE0;
+
 unsigned int cube_diffuse_map;
 unsigned int cube_specular_map;
 
@@ -68,13 +70,9 @@ void wsGraphicsFPSCamera(wsCamera *camera, mat4 *view_dest, float speed, float p
 unsigned short wsGraphicsInit(GLFWwindow *window) {
 	stbi_set_flip_vertically_on_load(true);
 	
-	// glClearColor(0.69f, 0.82f, 0.96f, 1.0f);// Sky
 	glClearColor(0.025f, 0.025f, 0.025f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	
-	/* glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK); */
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -82,7 +80,8 @@ unsigned short wsGraphicsInit(GLFWwindow *window) {
 	glEnable(GL_FRAMEBUFFER_SRGB);
 	
 	text_shader = wsShaderLoad("shaders/text.vert", "shaders/text.frag", false, false);
-	if(!wsTextInit(text_shader, &matrix_ortho))
+	
+	if(!wsTextInit(next_avaliable_texture_unit++, &matrix_ortho))
 		return WS_ERROR_FREETYPE;
 	
 	light_shader = wsShaderLoad("shaders/lightsource.vert", "shaders/lightsource.frag", false, false);
@@ -144,10 +143,12 @@ void wsGraphicsInitTestCube() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	
-	wsGraphicsLoadTexture("textures/test/woodcrate_diffuse.png", &cube_diffuse_map, GL_TEXTURE0, GL_CLAMP_TO_EDGE, GL_NEAREST);
-	wsGraphicsLoadTexture("textures/test/woodcrate_specular.png", &cube_specular_map, GL_TEXTURE0 + 1, GL_CLAMP_TO_EDGE, GL_NEAREST);
-	wsShaderSetInt(cube_shader, "material.diffuse_map", 0);
-	wsShaderSetInt(cube_shader, "material.specular_map", 1);
+	unsigned int diffuse_unit = next_avaliable_texture_unit++;
+	unsigned int specular_unit = next_avaliable_texture_unit++;
+	wsGraphicsLoadTexture("textures/test/woodcrate_diffuse.png", &cube_diffuse_map, diffuse_unit, GL_CLAMP_TO_EDGE, GL_NEAREST);
+	wsGraphicsLoadTexture("textures/test/woodcrate_specular.png", &cube_specular_map, specular_unit, GL_CLAMP_TO_EDGE, GL_NEAREST);
+	wsShaderSetInt(cube_shader, "material.diffuse_map", diffuse_unit - GL_TEXTURE0);
+	wsShaderSetInt(cube_shader, "material.specular_map", specular_unit - GL_TEXTURE0);
 	wsShaderSetFloat(cube_shader, "material.shininess", cube_material.shininess);
 }
 
@@ -175,7 +176,7 @@ void wsGraphicsLoadTexture(const char *path, unsigned int *dest_texture, unsigne
 
 // The exciting stuff!
 void wsGraphicsRender() {
-	/* mat4 matrix_view;
+	mat4 matrix_view;
 	mat4 matrix_model;
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -224,9 +225,9 @@ void wsGraphicsRender() {
 	wsLightSetPositionp(&pointlights[2], (vec3){cos(glfwGetTime()), sin(glfwGetTime()), sin(glfwGetTime())});
 	wsLightSetPositionp(&pointlights[3], (vec3){cos(glfwGetTime()), cos(glfwGetTime()), sin(glfwGetTime())});
 	wsLightSetPositionf(&spotlight, cameras[camera_active].position);
-	wsLightSetRotationf(&spotlight, cameras[camera_active].rotation); */
+	wsLightSetRotationf(&spotlight, cameras[camera_active].rotation);
 	
-	wsTextRender(text_shader, "~~~~~~This is some text!~~~~~~", 100, 100, 1, (vec3){1.0f, 1.0f, 1.0f});
+	wsTextRender(text_shader, "I can do it, yes I can.  Because I am a Jewish American!", 100.0f, 100.0f, 0.35f, (vec3){1.0f, 1.0f, 1.0f});
 }
 
 void wsGraphicsTerminate() {

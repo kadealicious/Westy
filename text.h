@@ -10,8 +10,11 @@ typedef struct Char {
 	vec2 size, bearing;
 } Char;
 
-bool wsTextInit(unsigned int shaderID, mat4 *projection);
+// Initialize text renderer.
+bool wsTextInit(unsigned int gl_texture_unit, mat4 *projection);
+// Render text.
 void wsTextRender(unsigned int shaderID, const char* text, float x, float y, float scale, vec3 color);
+// Free memory associated with text renderer.
 void wsTextTerminate();
 
 #endif

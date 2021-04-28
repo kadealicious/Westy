@@ -107,14 +107,13 @@ void main() {
 	light_color = HSVtoRGB(sat_light_color);
 	
 	vec3 dither_color;
-	float dither_intensity = 1.0;
 	int xdither = int(mod(gl_FragCoord.x, 8));
 	int ydither = int(mod(gl_FragCoord.y, 8));
 	dither_color.r = BayerFindClosest(xdither, ydither, light_color.r);
 	dither_color.g = BayerFindClosest(xdither, ydither, light_color.g);
 	dither_color.b = BayerFindClosest(xdither, ydither, light_color.b);
 	
-	output_color = mix(light_color, dither_color, dither_intensity);
+	output_color = dither_color;
 	
 	frag_color = vec4(output_color, 1.0);
 }
