@@ -1,0 +1,36 @@
+CC=gcc
+CFLAGS=-std=c99 -Wall
+LIB=-lmingw32 -lglfw3dll -lopengl32 -lfreetype
+DEPS=globals.h graphics.h shader.h input.h camera.h model.h material.h
+OBJ=main.o globals.o graphics.o shader.o input.o camera.o model.o material.o light.o glew.o
+
+all: app
+
+main.o: main.c
+	$(CC) $(CFLAGS) -c $^
+glew.o: glew.c
+	$(CC) $(CFLAGS) -c $^
+
+globals.o: globals.c globals.h
+	$(CC) $(CFLAGS) -c $^
+graphics.o: graphics.c graphics.h
+	$(CC) $(CFLAGS) -c $^
+shader.o: shader.c shader.h
+	$(CC) $(CFLAGS) -c $^
+input.o: input.c input.h
+	$(CC) $(CFLAGS) -c $^
+camera.o: camera.c camera.h
+	$(CC) $(CFLAGS) -c $^
+model.o: model.c model.h
+	$(CC) $(CFLAGS) -c $^
+material.o: material.c material.h
+	$(CC) $(CFLAGS) -c $^
+light.o: light.c light.h
+	$(CC) $(CFLAGS) -c $^
+
+app: $(OBJ)
+	$(CC) $(CFLAGS) -o builds/$@ $^ $(LIB)
+
+.PHONY: clean
+clean:
+	-del edit $(OBJ)
