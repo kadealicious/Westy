@@ -15,7 +15,7 @@ void wsInputInit(GLFWwindow *window, float sensitivity) {
 	window = window;
     mouse_sensitivity = sensitivity;
 
-    printf("wsInput initialized\n");
+    printf("Input initialized\n");
 }
 
 bool wsInputGetPress(int key)

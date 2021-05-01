@@ -135,8 +135,10 @@ void wsCameraMakeFPS(wsCamera *camera, mat4 *view_dest, float speed, float pitch
 		move_array[RIGHT]++;
 	if(wsInputGetPress(GLFW_KEY_SPACE))
 		move_array[UP]++;
-	if(wsInputGetPress(GLFW_KEY_LEFT_CONTROL) || wsInputGetPress(GLFW_KEY_LEFT_SHIFT))
+	if(wsInputGetPress(GLFW_KEY_LEFT_CONTROL))
 		move_array[UP]--;
+	if(wsInputGetPress(GLFW_KEY_LEFT_SHIFT))
+		glm_vec3_scale(move_array, 10.0f, move_array);
 	
 	wsCameraFPSMove(camera, move_array, speed);
 	wsCameraMouseMove(camera, wsInputGetMouseMoveX() / 3.0, wsInputGetMouseMoveY() / 3.0, pitch_constraint);
