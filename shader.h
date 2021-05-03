@@ -29,7 +29,7 @@ void wsShaderSetMat3(unsigned int shaderID, const char *var_name, mat3 *mat);
 void wsShaderSetMat4(unsigned int shaderID, const char *var_name, mat4 *mat);
 
 // Update shader's view_position.
-void wsShaderUpdateCamera(unsigned int shaderID, wsCamera *camera);
+void wsShaderUpdateCamera(unsigned int shaderID, unsigned int cameraID);
 // Update shader's model, view, projection matrices.
 void wsShaderSetMVP(unsigned int shaderID, mat4 *model, mat4 *view, mat4 *projection);
 // Update shader's matrix_normal.

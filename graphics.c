@@ -21,8 +21,7 @@
 unsigned int text_vbo, vbo;
 unsigned int text_vao, cube_vao, light_vao;
 
-wsCamera cameras[10];
-short camera_active = -1;
+short camera_active = WS_CAMERA_OFF;
 
 unsigned int text_shader, text_billboard_shader;
 unsigned int light_shader;
@@ -62,7 +61,7 @@ void wsGraphicsRender();
 void wsGraphicsTerminate();
 
 void wsGraphicsLoadTexture(const char *path, unsigned int *dest_texture, unsigned int gl_texture_unit, unsigned int wrap_style, unsigned int filter_style);
-void wsGraphicsFPSCamera(wsCamera *camera, mat4 *view_dest, float speed, float pitch_constraint);
+// void wsGraphicsFPSCamera(unsigned int ndx, mat4 *view_dest, float speed, float pitch_constraint);
 
 unsigned short wsGraphicsInit(GLFWwindow *window) {
 	stbi_set_flip_vertically_on_load(true);
@@ -91,8 +90,8 @@ unsigned short wsGraphicsInit(GLFWwindow *window) {
 	wsModelInit(&cube_model);
 	wsGraphicsInitTestCube();
 	
-	camera_active = 0;
-	wsCameraInit(&(cameras[camera_active]), (vec3){0.0f, 0.0f, 3.0f}, (vec3){0.0f, -90.0f, 0.0f}, field_of_view);
+	camera_active = WS_CAMERA0;
+	wsCameraInit(camera_active, (vec3){0.0f, 0.0f, 3.0f}, (vec3){0.0f, -90.0f, 0.0f}, 90.0f);
 	
 	printf("Graphics initialized\n");
 	return WS_OKAY;
@@ -112,7 +111,7 @@ void wsGraphicsInitLighting() {
 		wsLightQuickInitp(&pointlights[i], pointlight_positions[i], (vec3){1.0f, 0.8f, 0.0f}, 0.45f);
 	}
 	
-	wsLightQuickInitf(&spotlight, cameras[camera_active].position, cameras[camera_active].rotation, (vec3){1.0f, 0.0f, 1.0f}, 0.3f, 12.5f);
+	wsLightQuickInitf(&spotlight, cameras.position[camera_active], cameras.rotation[camera_active], (vec3){1.0f, 0.0f, 1.0f}, 0.3f, 12.5f);
 	wsLightQuickInitd(&directionlight, (vec3){-0.2f, -1.0f, -0.3f}, (vec3){1.0f, 1.0f, 0.8f}, 1.0f);
 }
 
@@ -179,11 +178,11 @@ void wsGraphicsRender() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	// Get perspective and ortho matrices for camera.
-	glm_perspective(glm_rad(cameras[camera_active].fov), (float)window_width / window_height, 0.1f, 100.0f, matrix_perspective);
+	glm_perspective(glm_rad(cameras.fov[camera_active]), (float)window_width / window_height, 0.1f, 100.0f, matrix_perspective);
 	glm_ortho(0.0f, window_width, 0.0f, window_height, 0.0f, 1000.0f, matrix_ortho);
 	
-	wsCameraMakeFPS(&(cameras[camera_active]), &matrix_view, 2.5f, 89.0f);
-	wsCameraGenViewMatrix(&(cameras[camera_active]), &matrix_view);
+	wsCameraMakeFPS(camera_active, &matrix_view, 2.5f, 89.0f);
+	wsCameraGenViewMatrix(camera_active, &matrix_view);
 	
 	wsGraphicsWorldRender(&matrix_model, &matrix_view, &matrix_perspective, &matrix_ortho);
 	wsGraphicsUIRender(&matrix_model, &matrix_view, &matrix_perspective, &matrix_ortho);
@@ -193,7 +192,7 @@ void wsGraphicsRender() {
 void wsGraphicsWorldRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_perspective, mat4 *matrix_ortho) {
 	wsShaderUse(cube_shader);
 	wsShaderSetFloat(cube_shader, "time", glfwGetTime());
-	wsShaderUpdateCamera(cube_shader, &(cameras[camera_active]));
+	wsShaderUpdateCamera(cube_shader, camera_active);
 	for(unsigned int i = 0; i < 10; i++) {
 		glm_mat4_identity(*matrix_model);
 		glm_translate(*matrix_model, cube_positions[i]);
@@ -228,8 +227,8 @@ void wsGraphicsWorldRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_p
 	wsLightSetPositionp(&pointlights[1], (vec3){cos(glfwGetTime()), sin(glfwGetTime()), cos(glfwGetTime())});
 	wsLightSetPositionp(&pointlights[2], (vec3){cos(glfwGetTime()), sin(glfwGetTime()), sin(glfwGetTime())});
 	wsLightSetPositionp(&pointlights[3], (vec3){cos(glfwGetTime()), cos(glfwGetTime()), sin(glfwGetTime())});
-	wsLightSetPositionf(&spotlight, cameras[camera_active].position);
-	wsLightSetRotationf(&spotlight, cameras[camera_active].rotation);
+	wsLightSetPositionf(&spotlight, cameras.position[camera_active]);
+	wsLightSetRotationf(&spotlight, cameras.rotation[camera_active]);
 }
 
 // Render UI.
@@ -240,7 +239,7 @@ void wsGraphicsUIRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_pers
 		char cube_name[2];
 		vec3 cube_label_position = {cube_positions[i][0], cube_positions[i][1] + 1.0f, cube_positions[i][2]};
 		sprintf(cube_name, "%d", i);
-		wsTextBillboardRender(text_billboard_shader, &cube_name[0], cube_label_position, 0.005f, font_color, &(cameras[camera_active]), matrix_view, matrix_perspective);
+		wsTextBillboardRender(text_billboard_shader, &cube_name[0], cube_label_position, 0.005f, font_color, camera_active, matrix_view, matrix_perspective);
 	}
 	
 	// UI labels.

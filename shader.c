@@ -104,8 +104,8 @@ void wsShaderSetMat3(unsigned int shaderID, const char *var_name, mat3 *mat)
 void wsShaderSetMat4(unsigned int shaderID, const char *var_name, mat4 *mat)
 	{ glProgramUniformMatrix4fv(shaderID, glGetUniformLocation(shaderID, var_name), 1, GL_FALSE, mat[0][0]); }
 
-void wsShaderUpdateCamera(unsigned int shaderID, wsCamera *camera)
-	{ wsShaderSetVec3(shaderID, "view_position", camera->position); }
+void wsShaderUpdateCamera(unsigned int shaderID, unsigned int cameraID)
+	{ wsShaderSetVec3(shaderID, "view_position", cameras.position[cameraID]); }
 void wsShaderSetMVP(unsigned int shaderID, mat4 *model, mat4 *view, mat4 *projection) {
 	wsShaderSetMat4(shaderID, "model", model);
 	wsShaderSetMat4(shaderID, "view", view);

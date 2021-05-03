@@ -17,7 +17,6 @@ int window_width	= 640;
 int window_height	= 480;
 unsigned int target_fps = 60;
 float delta_time = 1.0f;
-float field_of_view = 90.0f;// 45.0f
 
 // "Local" variables.
 FILE *console_log;

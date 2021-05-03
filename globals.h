@@ -24,7 +24,6 @@ extern int window_width;
 extern int window_height;
 extern unsigned int target_fps;
 extern float delta_time;
-extern float field_of_view;
 
 float wsInterpF(float start, float target, float damp);
 double wsInterpD(double start, double target, float damp);

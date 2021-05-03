@@ -178,7 +178,7 @@ void wsTextRender(unsigned int shaderID, const char* text, vec2 position, float 
 
 
 // Render billboard text in 3d worldspace.
-void wsTextBillboardRender(unsigned int shaderID, const char* text, vec3 position, float scale, vec3 color, wsCamera *camera, mat4 *matrix_view, mat4 *matrix_perspective) {
+void wsTextBillboardRender(unsigned int shaderID, const char* text, vec3 position, float scale, vec3 color, unsigned int cameraID, mat4 *matrix_view, mat4 *matrix_perspective) {
 	// Calculate end width + height for centering.
 	float half_width = 0.0f;
 	for(unsigned int i = 0; i < strlen(text); i++) {
@@ -194,11 +194,11 @@ void wsTextBillboardRender(unsigned int shaderID, const char* text, vec3 positio
 	glm_mat4_identity(matrix_model);
 	glm_translate(matrix_model, position);
 	
-	glm_lookat((vec3){0.0f, 0.0f, 0.0f}, camera->rotation, camera->up, matrix_lookat);
+	glm_lookat((vec3){0.0f, 0.0f, 0.0f}, cameras.rotation[cameraID], cameras.up[cameraID], matrix_lookat);
 	glm_mat4_inv_fast(matrix_lookat, matrix_lookat);
 	
 	// Send camera distance to shader for depth alpha.
-	float camera_distance = glm_vec3_distance(camera->position, position);
+	float camera_distance = glm_vec3_distance(cameras.position[cameraID], position);
 	wsShaderSetFloat(shaderID, "camera_distance", 1.0f / camera_distance);
 	
 	// Use shader, set color, camera distance, and projection matrices.  Texture unit too!!
