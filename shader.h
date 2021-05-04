@@ -36,14 +36,14 @@ void wsShaderSetMVP(unsigned int shaderID, mat4 *model, mat4 *view, mat4 *projec
 void wsShaderSetNormalMatrix(unsigned int shaderID, mat4 *model);
 
 // Update shader with info from all lights.
-void wsShaderUpdateLights(unsigned int shaderID, wsPointLight *pointlight_arr_start, unsigned int num_pointlights, wsSpotLight *spotlight, wsDirectionLight *directionlight);
+void wsShaderUpdateLights(unsigned int shaderID, unsigned int num_pointlights, unsigned int num_spotlights, unsigned int num_directionlights);
 // Update shader with info from pointlights.
-void wsShaderUpdateLightsp(unsigned int shaderID, wsPointLight *pointlight_arr_start, unsigned int num_pointlights);
+void wsShaderUpdateLightsp(unsigned int shaderID, unsigned int num_pointlights);
 // Update shader with pointlight info.
-void wsShaderUpdateLightp(unsigned int shaderID, wsPointLight *light_source, unsigned int pointlight_ndx);
+void wsShaderUpdateLightp(unsigned int shaderID, unsigned int lightID);
 // Update shader with spotlight info.
-void wsShaderUpdateLightf(unsigned int shaderID, wsSpotLight *light_source);
+void wsShaderUpdateLightf(unsigned int shaderID, unsigned int lightID);
 // Update shader with directional light info.
-void wsShaderUpdateLightd(unsigned int shaderID, wsDirectionLight *light_source);
+void wsShaderUpdateLightd(unsigned int shaderID, unsigned int lightID);
 
 #endif

@@ -120,55 +120,57 @@ void wsShaderSetNormalMatrix(unsigned int shaderID, mat4 *model) {
 	wsShaderSetMat3(shaderID, "normal_matrix", &normal3);	
 }
 
-void wsShaderUpdateLights(unsigned int shaderID, wsPointLight *pointlight_arr_start, unsigned int num_pointlights, wsSpotLight *spotlight, wsDirectionLight *directionlight) {
-	for(int i = 0; i < num_pointlights; i++)
-		wsShaderUpdateLightp(shaderID, pointlight_arr_start + i, i);
-	wsShaderUpdateLightf(shaderID, spotlight);
-	wsShaderUpdateLightd(shaderID, directionlight);
+void wsShaderUpdateLights(unsigned int shaderID, unsigned int num_pointlights, unsigned int num_spotlights, unsigned int num_directionlights) {
+	for(unsigned int i = 0; i < num_pointlights; i++)
+		wsShaderUpdateLightp(shaderID, i);
+	for(unsigned int i = 0; i < num_spotlights; i++)
+		wsShaderUpdateLightf(shaderID, 0);
+	for(unsigned int i = 0; i < num_directionlights; i++)
+		wsShaderUpdateLightd(shaderID, 0);
 }
-void wsShaderUpdateLightsp(unsigned int shaderID, wsPointLight *pointlight_arr_start, unsigned int num_pointlights) {
-	for(int i = 0; i < num_pointlights; i++)
-		wsShaderUpdateLightp(shaderID, pointlight_arr_start + i, i);
+void wsShaderUpdateLightsp(unsigned int shaderID, unsigned int num_pointlights) {
+	for(unsigned int i = 0; i < num_pointlights; i++)
+		wsShaderUpdateLightp(shaderID, i);
 }
-void wsShaderUpdateLightp(unsigned int shaderID, wsPointLight *lightsource, unsigned int pointlight_ndx) {
+void wsShaderUpdateLightp(unsigned int shaderID, unsigned int lightID) {
 	char cur_str[35];
 	
-	sprintf(cur_str, "pointlights[%d].position", pointlight_ndx);
-	wsShaderSetVec3(shaderID, cur_str, lightsource->position);
+	sprintf(cur_str, "pointlights[%d].position", lightID);
+	wsShaderSetVec3(shaderID, cur_str, pointlights.position[lightID]);
 	
-	sprintf(cur_str, "pointlights[%d].ambient", pointlight_ndx);
-	wsShaderSetVec3(shaderID, cur_str, lightsource->ambient);
-	sprintf(cur_str, "pointlights[%d].diffuse", pointlight_ndx);
-	wsShaderSetVec3(shaderID, cur_str, lightsource->diffuse);
-	sprintf(cur_str, "pointlights[%d].specular", pointlight_ndx);
-	wsShaderSetVec3(shaderID, cur_str, lightsource->specular);
+	sprintf(cur_str, "pointlights[%d].ambient", lightID);
+	wsShaderSetVec3(shaderID, cur_str, pointlights.ambient[lightID]);
+	sprintf(cur_str, "pointlights[%d].diffuse", lightID);
+	wsShaderSetVec3(shaderID, cur_str, pointlights.diffuse[lightID]);
+	sprintf(cur_str, "pointlights[%d].specular", lightID);
+	wsShaderSetVec3(shaderID, cur_str, pointlights.specular[lightID]);
 	
-	sprintf(cur_str, "pointlights[%d].constant", pointlight_ndx);
-	wsShaderSetFloat(shaderID, cur_str, lightsource->constant);
-	sprintf(cur_str, "pointlights[%d].linear", pointlight_ndx);
-	wsShaderSetFloat(shaderID, cur_str, lightsource->linear);
-	sprintf(cur_str, "pointlights[%d].quadratic", pointlight_ndx);
-	wsShaderSetFloat(shaderID, cur_str, lightsource->quadratic);
+	sprintf(cur_str, "pointlights[%d].constant", lightID);
+	wsShaderSetFloat(shaderID, cur_str, pointlights.constant[lightID]);
+	sprintf(cur_str, "pointlights[%d].linear", lightID);
+	wsShaderSetFloat(shaderID, cur_str, pointlights.linear[lightID]);
+	sprintf(cur_str, "pointlights[%d].quadratic", lightID);
+	wsShaderSetFloat(shaderID, cur_str, pointlights.quadratic[lightID]);
 }
-void wsShaderUpdateLightf(unsigned int shaderID, wsSpotLight *lightsource) {
-	wsShaderSetVec3(shaderID, "spotlight.position", lightsource->position);
-	wsShaderSetVec3(shaderID, "spotlight.rotation", lightsource->rotation);
+void wsShaderUpdateLightf(unsigned int shaderID, unsigned int lightID) {
+	wsShaderSetVec3(shaderID, "spotlight.position", spotlights.position[lightID]);
+	wsShaderSetVec3(shaderID, "spotlight.rotation", spotlights.rotation[lightID]);
 	
-	wsShaderSetFloat(shaderID, "spotlight.cutoff", lightsource->cutoff);
-	wsShaderSetFloat(shaderID, "spotlight.outer_cutoff", lightsource->outer_cutoff);
+	wsShaderSetFloat(shaderID, "spotlight.cutoff", spotlights.cutoff[lightID]);
+	wsShaderSetFloat(shaderID, "spotlight.outer_cutoff", spotlights.outer_cutoff[lightID]);
 	
-	wsShaderSetVec3(shaderID, "spotlight.ambient", lightsource->ambient);
-	wsShaderSetVec3(shaderID, "spotlight.diffuse", lightsource->diffuse);
-	wsShaderSetVec3(shaderID, "spotlight.specular", lightsource->specular);
+	wsShaderSetVec3(shaderID, "spotlight.ambient", spotlights.ambient[lightID]);
+	wsShaderSetVec3(shaderID, "spotlight.diffuse", spotlights.diffuse[lightID]);
+	wsShaderSetVec3(shaderID, "spotlight.specular", spotlights.specular[lightID]);
 	
-	wsShaderSetFloat(shaderID, "spotlight.constant", lightsource->constant);
-	wsShaderSetFloat(shaderID, "spotlight.linear", lightsource->linear);
-	wsShaderSetFloat(shaderID, "spotlight.quadratic", lightsource->quadratic);
+	wsShaderSetFloat(shaderID, "spotlight.constant", spotlights.constant[lightID]);
+	wsShaderSetFloat(shaderID, "spotlight.linear", spotlights.linear[lightID]);
+	wsShaderSetFloat(shaderID, "spotlight.quadratic", spotlights.quadratic[lightID]);
 }
-void wsShaderUpdateLightd(unsigned int shaderID, wsDirectionLight *lightsource) {
-	wsShaderSetVec3(shaderID, "directionlight.rotation", lightsource->rotation);
+void wsShaderUpdateLightd(unsigned int shaderID, unsigned int lightID) {
+	wsShaderSetVec3(shaderID, "directionlight.rotation", spotlights.rotation[lightID]);
 	
-	wsShaderSetVec3(shaderID, "directionlight.ambient", lightsource->ambient);
-	wsShaderSetVec3(shaderID, "directionlight.diffuse", lightsource->diffuse);
-	wsShaderSetVec3(shaderID, "directionlight.specular", lightsource->specular);
+	wsShaderSetVec3(shaderID, "directionlight.ambient", spotlights.ambient[lightID]);
+	wsShaderSetVec3(shaderID, "directionlight.diffuse", spotlights.diffuse[lightID]);
+	wsShaderSetVec3(shaderID, "directionlight.specular", spotlights.specular[lightID]);
 }

@@ -35,11 +35,6 @@ unsigned int cube_specular_map;
 wsModel cube_model;
 wsMaterial cube_material;
 
-unsigned int num_pointlights;
-wsPointLight pointlights[4];
-wsDirectionLight directionlight;
-wsSpotLight spotlight;
-
 vec3 cube_positions[] = {
     { 0.0f,  0.0f,  0.0f}, 
     { 2.0f,  5.0f, -15.0f}, 
@@ -105,14 +100,12 @@ void wsGraphicsInitLighting() {
 		{ 0.0f,  0.0f, -3.0f}
 	};
 	
-	num_pointlights = sizeof(pointlights) / sizeof(pointlights[0]);
-	printf("%d point lights in scene\n", num_pointlights);
-	for(int i = 0; i < num_pointlights; i++) {
-		wsLightQuickInitp(&pointlights[i], pointlight_positions[i], (vec3){1.0f, 0.8f, 0.0f}, 0.45f);
+	for(int i = 0; i < WS_MAX_POINTLIGHTS; i++) {
+		wsLightQuickInitp(i, pointlight_positions[i], (vec3){1.0f, 0.8f, 0.0f}, 0.45f);
 	}
 	
-	wsLightQuickInitf(&spotlight, cameras.position[camera_active], cameras.rotation[camera_active], (vec3){1.0f, 0.0f, 1.0f}, 0.3f, 12.5f);
-	wsLightQuickInitd(&directionlight, (vec3){-0.2f, -1.0f, -0.3f}, (vec3){1.0f, 1.0f, 0.8f}, 1.0f);
+	wsLightQuickInitf(0, cameras.position[camera_active], cameras.rotation[camera_active], (vec3){1.0f, 0.0f, 1.0f}, 0.3f, 12.5f);
+	wsLightQuickInitd(0, (vec3){-0.2f, -1.0f, -0.3f}, (vec3){1.0f, 1.0f, 0.8f}, 1.0f);
 }
 
 void wsGraphicsInitTestCube() {
@@ -201,34 +194,34 @@ void wsGraphicsWorldRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_p
 		wsShaderSetMVP(cube_shader, matrix_model, matrix_view, matrix_perspective);
 		wsShaderSetNormalMatrix(cube_shader, matrix_model);
 		
-		wsShaderUpdateLightsp(cube_shader, &pointlights[0], num_pointlights);
-		wsShaderUpdateLightf(cube_shader, &spotlight);
-		wsShaderUpdateLightd(cube_shader, &directionlight);
+		wsShaderUpdateLightsp(cube_shader, WS_MAX_POINTLIGHTS);
+		wsShaderUpdateLightf(cube_shader, 0);
+		wsShaderUpdateLightd(cube_shader, 0);
 		
 		glBindVertexArray(cube_vao);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
 	
-	for(unsigned int i = 0; i < num_pointlights; i++) {
+	for(unsigned int i = 0; i < WS_MAX_POINTLIGHTS; i++) {
 		glm_mat4_identity(*matrix_model);
-		glm_translate(*matrix_model, pointlights[i].position);
+		glm_translate(*matrix_model, pointlights.position[i]);
 		glm_scale(*matrix_model, (vec3){0.2f, 0.2f, 0.2f});
 		
 		wsShaderUse(light_shader);
-		wsShaderSetVec3(light_shader, "light_color", (&pointlights[i])->color);
+		wsShaderSetVec3(light_shader, "light_color", pointlights.color[i]);
 		wsShaderSetMVP(light_shader, matrix_model, matrix_view, matrix_perspective);
 		
-		wsLightSetColorp(&pointlights[i], (vec3){fabs(sin(glfwGetTime())), fabs(sin(glfwGetTime() * i * 2)), fabs(sin(glfwGetTime() * i * 4))});
+		wsLightSetColorp(i, (vec3){fabs(sin(glfwGetTime())), fabs(sin(glfwGetTime() * i * 2)), fabs(sin(glfwGetTime() * i * 4))});
 		
 		glBindVertexArray(light_vao);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
-	wsLightSetPositionp(&pointlights[0], (vec3){sin(glfwGetTime()), cos(glfwGetTime()), sin(glfwGetTime())});
-	wsLightSetPositionp(&pointlights[1], (vec3){cos(glfwGetTime()), sin(glfwGetTime()), cos(glfwGetTime())});
-	wsLightSetPositionp(&pointlights[2], (vec3){cos(glfwGetTime()), sin(glfwGetTime()), sin(glfwGetTime())});
-	wsLightSetPositionp(&pointlights[3], (vec3){cos(glfwGetTime()), cos(glfwGetTime()), sin(glfwGetTime())});
-	wsLightSetPositionf(&spotlight, cameras.position[camera_active]);
-	wsLightSetRotationf(&spotlight, cameras.rotation[camera_active]);
+	wsLightSetPositionp(0, (vec3){sin(glfwGetTime()), cos(glfwGetTime()), sin(glfwGetTime())});
+	wsLightSetPositionp(1, (vec3){cos(glfwGetTime()), sin(glfwGetTime()), cos(glfwGetTime())});
+	wsLightSetPositionp(2, (vec3){cos(glfwGetTime()), sin(glfwGetTime()), sin(glfwGetTime())});
+	wsLightSetPositionp(3, (vec3){cos(glfwGetTime()), cos(glfwGetTime()), sin(glfwGetTime())});
+	wsLightSetPositionf(0, cameras.position[camera_active]);
+	wsLightSetRotationf(0, cameras.rotation[camera_active]);
 }
 
 // Render UI.

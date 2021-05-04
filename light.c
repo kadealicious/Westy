@@ -8,16 +8,16 @@ float wsLightCalcConstant(float intensity) { return light_minintensity[CONSTANT]
 float wsLightCalcLinear(float intensity) { return light_minintensity[LINEAR] + (light_maxintensity[LINEAR] - light_minintensity[LINEAR]) * intensity; }
 float wsLightCalcQuadratic(float intensity) { return light_minintensity[QUADRATIC] + (light_maxintensity[QUADRATIC] - light_minintensity[QUADRATIC]) * intensity; }
 
-void wsLightInitp(wsPointLight *light_source, vec3 position, vec3 ambient, vec3 diffuse, vec3 specular, float constant, float linear, float quadratic);
-void wsLightInitf(wsSpotLight *light_source, vec3 position, vec3 rotation, vec3 ambient, vec3 diffuse, vec3 specular, float constant, float linear, float quadratic, float cutoff, float outer_cutoff);
-void wsLightInitd(wsDirectionLight *light_source, vec3 rotation, vec3 ambient, vec3 diffuse, vec3 specular);
+void wsLightInitp(unsigned int lightID, vec3 position, vec3 ambient, vec3 diffuse, vec3 specular, float constant, float linear, float quadratic);
+void wsLightInitf(unsigned int lightID, vec3 position, vec3 rotation, vec3 ambient, vec3 diffuse, vec3 specular, float constant, float linear, float quadratic, float cutoff, float outer_cutoff);
+void wsLightInitd(unsigned int lightID, vec3 rotation, vec3 ambient, vec3 diffuse, vec3 specular);
 
-void wsLightQuickInitp(wsPointLight *light_source, vec3 position, vec3 color, float intensity) {
+void wsLightQuickInitp(unsigned int lightID, vec3 position, vec3 color, float intensity) {
 	vec3 ambient;
 	glm_vec3_scale(color, 0.1f, ambient);
 	
 	wsLightInitp(
-		light_source, 
+		lightID, 
 		position, 
 		ambient, 
 		color, 
@@ -27,12 +27,12 @@ void wsLightQuickInitp(wsPointLight *light_source, vec3 position, vec3 color, fl
 		wsLightCalcQuadratic(intensity)
 	);
 }
-void wsLightQuickInitf(wsSpotLight *light_source, vec3 position, vec3 rotation, vec3 color, float intensity, unsigned int spread) {
+void wsLightQuickInitf(unsigned int lightID, vec3 position, vec3 rotation, vec3 color, float intensity, unsigned int spread) {
 	vec3 ambient;
 	glm_vec3_scale(color, 0.1f, ambient);
 	
 	wsLightInitf(
-		light_source, 
+		lightID, 
 		position, 
 		rotation, 
 		ambient, 
@@ -45,12 +45,12 @@ void wsLightQuickInitf(wsSpotLight *light_source, vec3 position, vec3 rotation, 
 		cos(glm_rad(spread + (spread * 0.4f)))
 	);
 }
-void wsLightQuickInitd(wsDirectionLight *light_source, vec3 rotation, vec3 color, float intensity) {
+void wsLightQuickInitd(unsigned int lightID, vec3 rotation, vec3 color, float intensity) {
 	vec3 ambient;
 	glm_vec3_scale(color, 0.1f, ambient);
 	
 	wsLightInitd(
-		light_source, 
+		lightID, 
 		rotation, 
 		ambient, 
 		color, 
@@ -58,146 +58,146 @@ void wsLightQuickInitd(wsDirectionLight *light_source, vec3 rotation, vec3 color
 	);
 }
 
-void wsLightInitp(wsPointLight *light_source, vec3 position, vec3 ambient, vec3 diffuse, vec3 specular, float constant, float linear, float quadratic) {
+void wsLightInitp(unsigned int lightID, vec3 position, vec3 ambient, vec3 diffuse, vec3 specular, float constant, float linear, float quadratic) {
 	for(int i = 0; i < 3; i++) {
-		light_source->position[i] = position[i];
+		pointlights.position[lightID][i] 	= position[i];
 		
-		light_source->color[i]		= diffuse[i];
-		light_source->ambient[i]	= ambient[i];
-		light_source->diffuse[i]	= diffuse[i];
-		light_source->specular[i]	= specular[i];
+		pointlights.color[lightID][i]		= diffuse[i];
+		pointlights.ambient[lightID][i]		= ambient[i];
+		pointlights.diffuse[lightID][i]		= diffuse[i];
+		pointlights.specular[lightID][i]	= specular[i];
 	}
-	light_source->constant = constant;
-	light_source->linear = linear;
-	light_source->quadratic = quadratic;
+	pointlights.constant[lightID]	= constant;
+	pointlights.linear[lightID]		= linear;
+	pointlights.quadratic[lightID]	= quadratic;
 	
-	printf("Point light @ %p initialized\n", light_source);
+	printf("Point light %d initialized\n", lightID);
 }
-void wsLightInitf(wsSpotLight *light_source, vec3 position, vec3 rotation, vec3 ambient, vec3 diffuse, vec3 specular, float constant, float linear, float quadratic, float cutoff, float outer_cutoff) {
+void wsLightInitf(unsigned int lightID, vec3 position, vec3 rotation, vec3 ambient, vec3 diffuse, vec3 specular, float constant, float linear, float quadratic, float cutoff, float outer_cutoff) {
 	for(int i = 0; i < 3; i++) {
-		light_source->position[i] = position[i];
-		light_source->rotation[i] = rotation[i];
+		spotlights.position[lightID][i] = position[i];
+		spotlights.rotation[lightID][i] = rotation[i];
 		
-		light_source->color[i]		= diffuse[i];
-		light_source->ambient[i]	= ambient[i];
-		light_source->diffuse[i]	= diffuse[i];
-		light_source->specular[i]	= specular[i];
+		spotlights.color[lightID][i]	= diffuse[i];
+		spotlights.ambient[lightID][i]	= ambient[i];
+		spotlights.diffuse[lightID][i]	= diffuse[i];
+		spotlights.specular[lightID][i]	= specular[i];
 	}
-	light_source->constant = constant;
-	light_source->linear = linear;
-	light_source->quadratic = quadratic;
+	spotlights.constant[lightID]		= constant;
+	spotlights.linear[lightID]		= linear;
+	spotlights.quadratic[lightID]	= quadratic;
 	
-	light_source->cutoff = cutoff;
-	light_source->outer_cutoff = outer_cutoff;
+	spotlights.cutoff[lightID]		= cutoff;
+	spotlights.outer_cutoff[lightID]	= outer_cutoff;
 	
-	printf("Spot light @ %p initialized\n", light_source);
+	printf("Spot light %d initialized\n", lightID);
 }
-void wsLightInitd(wsDirectionLight *light_source, vec3 rotation, vec3 ambient, vec3 diffuse, vec3 specular) {
+void wsLightInitd(unsigned int lightID, vec3 rotation, vec3 ambient, vec3 diffuse, vec3 specular) {
 	for(int i = 0; i < 3; i++) {
-		light_source->rotation[i] = rotation[i];
+		directionlights.rotation[lightID][i]	= rotation[i];
 		
-		light_source->color[i]		= diffuse[i];
-		light_source->ambient[i]	= ambient[i];
-		light_source->diffuse[i]	= diffuse[i];
-		light_source->specular[i]	= specular[i];
+		directionlights.color[lightID][i]		= diffuse[i];
+		directionlights.ambient[lightID][i]		= ambient[i];
+		directionlights.diffuse[lightID][i]		= diffuse[i];
+		directionlights.specular[lightID][i]	= specular[i];
 	}
 	
-	printf("Directional light @ %p initialized\n", light_source);
+	printf("Directional light %d initialized\n", lightID);
 }
 
-void wsLightSetPositionp(wsPointLight *light_source, vec3 position) {
-	light_source->position[0] = position[0];
-	light_source->position[1] = position[1];
-	light_source->position[2] = position[2];
+void wsLightSetPositionp(unsigned int lightID, vec3 position) {
+	pointlights.position[lightID][0] = position[0];
+	pointlights.position[lightID][1] = position[1];
+	pointlights.position[lightID][2] = position[2];
 }
-void wsLightSetPositionf(wsSpotLight *light_source, vec3 position) {
-	light_source->position[0] = position[0];
-	light_source->position[1] = position[1];
-	light_source->position[2] = position[2];
+void wsLightSetPositionf(unsigned int lightID, vec3 position) {
+	spotlights.position[lightID][0] = position[0];
+	spotlights.position[lightID][1] = position[1];
+	spotlights.position[lightID][2] = position[2];
 }
-void wsLightSetRotationf(wsSpotLight *light_source, vec3 rotation) {
-	light_source->rotation[0] = rotation[0];
-	light_source->rotation[1] = rotation[1];
-	light_source->rotation[2] = rotation[2];
+void wsLightSetRotationf(unsigned int lightID, vec3 rotation) {
+	spotlights.rotation[lightID][0] = rotation[0];
+	spotlights.rotation[lightID][1] = rotation[1];
+	spotlights.rotation[lightID][2] = rotation[2];
 }
-void wsLightSetRotationd(wsDirectionLight *light_source, vec3 rotation) {
-	light_source->rotation[0] = rotation[0];
-	light_source->rotation[1] = rotation[1];
-	light_source->rotation[2] = rotation[2];
+void wsLightSetRotationd(unsigned int lightID, vec3 rotation) {
+	directionlights.rotation[lightID][0] = rotation[0];
+	directionlights.rotation[lightID][1] = rotation[1];
+	directionlights.rotation[lightID][2] = rotation[2];
 }
 
-void wsLightSetColorp(wsPointLight *light_source, vec3 color) {
+void wsLightSetColorp(unsigned int lightID, vec3 color) {
 	for(unsigned int i = 0; i < 3; i++) {
-		light_source->color[i]		= color[i];
-		light_source->ambient[i]	= color[i] * 0.1f;
-		light_source->diffuse[i]	= color[i];
-		light_source->specular[i]	= color[i];
+		pointlights.color[lightID][i]		= color[i];
+		pointlights.ambient[lightID][i]		= color[i] * 0.1f;
+		pointlights.diffuse[lightID][i]		= color[i];
+		pointlights.specular[lightID][i]	= color[i];
 	}
 }
-void wsLightSetColorf(wsSpotLight *light_source, vec3 color) {
+void wsLightSetColorf(unsigned int lightID, vec3 color) {
 	for(unsigned int i = 0; i < 3; i++) {
-		light_source->color[i]		= color[i];
-		light_source->ambient[i]	= color[i] * 0.1f;
-		light_source->diffuse[i]	= color[i];
-		light_source->specular[i]	= color[i];
+		spotlights.color[lightID][i]	= color[i];
+		spotlights.ambient[lightID][i]	= color[i] * 0.1f;
+		spotlights.diffuse[lightID][i]	= color[i];
+		spotlights.specular[lightID][i]	= color[i];
 	}
 }
-void wsLightSetColord(wsDirectionLight *light_source, vec3 color) {
+void wsLightSetColord(unsigned int lightID, vec3 color) {
 	for(unsigned int i = 0; i < 3; i++) {
-		light_source->color[i]		= color[i];
-		light_source->ambient[i]	= color[i] * 0.1f;
-		light_source->diffuse[i]	= color[i];
-		light_source->specular[i]	= color[i];
+		directionlights.color[lightID][i]		= color[i];
+		directionlights.ambient[lightID][i]		= color[i] * 0.1f;
+		directionlights.diffuse[lightID][i]		= color[i];
+		directionlights.specular[lightID][i]	= color[i];
 	}
 }
 
-void wsLightSetIntensityp(wsPointLight *light_source, float intensity) {
-	light_source->constant	= wsLightCalcConstant(intensity);
-	light_source->linear	= wsLightCalcLinear(intensity);
-	light_source->quadratic	= wsLightCalcQuadratic(intensity);
+void wsLightSetIntensityp(unsigned int lightID, float intensity) {
+	pointlights.constant[lightID]	= wsLightCalcConstant(intensity);
+	pointlights.linear[lightID]		= wsLightCalcLinear(intensity);
+	pointlights.quadratic[lightID]	= wsLightCalcQuadratic(intensity);
 }
-void wsLightSetIntensityf(wsSpotLight *light_source, float intensity) {
-	light_source->constant	= wsLightCalcConstant(intensity);
-	light_source->linear	= wsLightCalcLinear(intensity);
-	light_source->quadratic	= wsLightCalcQuadratic(intensity);
+void wsLightSetIntensityf(unsigned int lightID, float intensity) {
+	spotlights.constant[lightID]	= wsLightCalcConstant(intensity);
+	spotlights.linear[lightID]		= wsLightCalcLinear(intensity);
+	spotlights.quadratic[lightID]	= wsLightCalcQuadratic(intensity);
 }
 
-void wsLightTogglep(wsPointLight *light_source, bool turn_on) {
+void wsLightTogglep(unsigned int lightID, bool turn_on) {
 	if(turn_on) {
 		for(unsigned int i = 0; i < 3; i++) {
-			light_source->ambient[i]	= light_source->color[i] * 0.1f;
-			light_source->diffuse[i]	= light_source->color[i];
-			light_source->specular[i]	= light_source->color[i];
+			pointlights.ambient[lightID][i]		= pointlights.color[lightID][i] * 0.1f;
+			pointlights.diffuse[lightID][i]		= pointlights.color[lightID][i];
+			pointlights.specular[lightID][i]	= pointlights.color[lightID][i];
 		}
 	} else {
-		glm_vec3_zero(light_source->ambient);
-		glm_vec3_zero(light_source->diffuse);
-		glm_vec3_zero(light_source->specular);
+		glm_vec3_zero(pointlights.ambient[lightID]);
+		glm_vec3_zero(pointlights.diffuse[lightID]);
+		glm_vec3_zero(pointlights.specular[lightID]);
 	}
 }
-void wsLightTogglef(wsSpotLight *light_source, bool turn_on) {
+void wsLightTogglef(unsigned int lightID, bool turn_on) {
 	if(turn_on) {
 		for(unsigned int i = 0; i < 3; i++) {
-			light_source->ambient[i]	= light_source->color[i] * 0.1f;
-			light_source->diffuse[i]	= light_source->color[i];
-			light_source->specular[i]	= light_source->color[i];
+			spotlights.ambient[lightID][i]	= spotlights.color[lightID][i] * 0.1f;
+			spotlights.diffuse[lightID][i]	= spotlights.color[lightID][i];
+			spotlights.specular[lightID][i]	= spotlights.color[lightID][i];
 		}
 	} else {
-		glm_vec3_zero(light_source->ambient);
-		glm_vec3_zero(light_source->diffuse);
-		glm_vec3_zero(light_source->specular);
+		glm_vec3_zero(spotlights.ambient[lightID]);
+		glm_vec3_zero(spotlights.diffuse[lightID]);
+		glm_vec3_zero(spotlights.specular[lightID]);
 	}
 }
-void wsLightToggled(wsDirectionLight *light_source, bool turn_on) {
+void wsLightToggled(unsigned int lightID, bool turn_on) {
 	if(turn_on) {
 		for(unsigned int i = 0; i < 3; i++) {
-			light_source->ambient[i]	= light_source->color[i] * 0.1f;
-			light_source->diffuse[i]	= light_source->color[i];
-			light_source->specular[i]	= light_source->color[i];
+			directionlights.ambient[lightID][i]	= directionlights.color[lightID][i] * 0.1f;
+			directionlights.diffuse[lightID][i]	= directionlights.color[lightID][i];
+			directionlights.specular[lightID][i]	= directionlights.color[lightID][i];
 		}
 	} else {
-		glm_vec3_zero(light_source->ambient);
-		glm_vec3_zero(light_source->diffuse);
-		glm_vec3_zero(light_source->specular);
+		glm_vec3_zero(directionlights.ambient[lightID]);
+		glm_vec3_zero(directionlights.diffuse[lightID]);
+		glm_vec3_zero(directionlights.specular[lightID]);
 	}
 }
