@@ -1,5 +1,9 @@
 #version 460 core
 
+#define MAX_POINTLIGHTS 4
+#define MAX_SPOTLIGHTS 1
+#define MAX_DIRECTIONLIGHTS 1
+
 struct Material {
 	sampler2D diffuse_map;
 	sampler2D specular_map;
@@ -7,60 +11,57 @@ struct Material {
 	float shininess;
 };
 
-struct PointLight {
-	vec3 position;
+struct PointLights {
+	vec3 position[MAX_POINTLIGHTS];
 	
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
+	vec3 ambient[MAX_POINTLIGHTS];
+	vec3 diffuse[MAX_POINTLIGHTS];
+	vec3 specular[MAX_POINTLIGHTS];
 	
-	float constant;
-	float linear;
-	float quadratic;
+	float constant[MAX_POINTLIGHTS];
+	float linear[MAX_POINTLIGHTS];
+	float quadratic[MAX_POINTLIGHTS];
 };
-
-struct DirectionLight {
-	vec3 rotation;
+struct SpotLights {
+	vec3 position[MAX_SPOTLIGHTS];
+	vec3 rotation[MAX_SPOTLIGHTS];
 	
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
+	float cutoff[MAX_SPOTLIGHTS];
+	float outer_cutoff[MAX_SPOTLIGHTS];
+	
+	vec3 ambient[MAX_SPOTLIGHTS];
+	vec3 diffuse[MAX_SPOTLIGHTS];
+	vec3 specular[MAX_SPOTLIGHTS];
+	
+	float constant[MAX_SPOTLIGHTS];
+	float linear[MAX_SPOTLIGHTS];
+	float quadratic[MAX_SPOTLIGHTS];
 };
-
-struct SpotLight {
-	vec3 position;
-	vec3 rotation;
+struct DirectionLights {
+	vec3 rotation[MAX_DIRECTIONLIGHTS];
 	
-	float cutoff;
-	float outer_cutoff;
-	
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
-	
-	float constant;
-	float linear;
-	float quadratic;
+	vec3 ambient[MAX_DIRECTIONLIGHTS];
+	vec3 diffuse[MAX_DIRECTIONLIGHTS];
+	vec3 specular[MAX_DIRECTIONLIGHTS];
 };
 
 in vec3 normal;
 in vec3 frag_position;
 in vec2 tex_coord;
 
-#define NUM_POINT_LIGHTS 4
-
 uniform float time;
 uniform vec3 view_position;
+
 uniform Material material;
-uniform PointLight pointlights[NUM_POINT_LIGHTS];
-uniform DirectionLight directionlight;
-uniform SpotLight spotlight;
+uniform PointLights pointlights;
+uniform SpotLights spotlights;
+uniform DirectionLights directionlights;
 
 out vec4 frag_color;
 
-vec3 CalculateDirectionLight(DirectionLight light, vec3 unit_normal, vec3 view_direction);
-vec3 CalculatePointLight(PointLight light, vec3 unit_normal, vec3 view_direction);
-vec3 CalculateSpotLight(SpotLight light, vec3 unit_normal, vec3 view_direction);
+vec3 CalculateDirectionLight(uint lightID, vec3 unit_normal, vec3 view_direction);
+vec3 CalculatePointLight(uint lightID, vec3 unit_normal, vec3 view_direction);
+vec3 CalculateSpotLight(uint lightID, vec3 unit_normal, vec3 view_direction);
 float BayerFindClosest(int x, int y, float col);
 
 const float Epsilon = 1e-10;
@@ -87,17 +88,19 @@ vec3 HSVtoRGB(in vec3 HSV)
 }
 
 void main() {
-	vec3 light_color, output_color;
+	vec3 light_color = vec3(0.0f), output_color;
 	vec3 unit_normal = normalize(normal);
 	vec3 view_direction = normalize(view_position - frag_position);
 	float light_intensity = 1.0;
 	
 	float light_color_magnitude;
-	// light_color = CalculateDirectionLight(directionlight, unit_normal, view_direction) * light_intensity;
-	for(int i = 0; i < NUM_POINT_LIGHTS; i++) {
-		light_color += CalculatePointLight(pointlights[i], unit_normal, view_direction) * light_intensity;
-	}
-	// light_color += CalculateSpotLight(spotlight, unit_normal, view_direction) * light_intensity;
+	for(uint i = 0; i < MAX_POINTLIGHTS; i++)
+		light_color += CalculatePointLight(i, unit_normal, view_direction) * light_intensity;
+	for(uint i = 0; i < MAX_SPOTLIGHTS; i++)
+		light_color += CalculateSpotLight(i, unit_normal, view_direction) * light_intensity;
+	for(uint i = 0; i < MAX_DIRECTIONLIGHTS; i++)
+		light_color += CalculateDirectionLight(i, unit_normal, view_direction) * light_intensity;
+	
 	light_color_magnitude = length(light_color);
 	light_color += pow(light_color_magnitude, 2.0) * 2;
 	
@@ -139,48 +142,32 @@ float BayerFindClosest(int x, int y, float col) {
 	return 1.0f;
 }
 
-vec3 CalculateDirectionLight(DirectionLight light, vec3 unit_normal, vec3 view_direction) {
+vec3 CalculatePointLight(uint lightID, vec3 unit_normal, vec3 view_direction) {
 	// Ambient.
-	vec3 ambient = light.ambient * texture(material.diffuse_map, tex_coord).rgb;
+	vec3 ambient = pointlights.ambient[lightID] * texture(material.diffuse_map, tex_coord).rgb;
 	
 	// Diffuse.
-	vec3 ray_direction = normalize(-light.rotation);
+	vec3 ray_direction = normalize(pointlights.position[lightID] - frag_position);
 	float diffuse_strength = max(dot(unit_normal, ray_direction), 0.0f);
-	vec3 diffuse = light.diffuse * diffuse_strength * texture(material.diffuse_map, tex_coord).rgb;
+	vec3 diffuse = pointlights.diffuse[lightID] * diffuse_strength * texture(material.diffuse_map, tex_coord).rgb;
 	
 	// Specular.
 	vec3 reflection_direction = reflect(-ray_direction, unit_normal);
 	float specular_strength = pow(max(dot(view_direction, reflection_direction), 0.0f), material.shininess);
-	vec3 specular = light.specular * specular_strength * texture(material.specular_map, tex_coord).rgb;
-	
-	return (ambient + diffuse + specular);
-}
-vec3 CalculatePointLight(PointLight light, vec3 unit_normal, vec3 view_direction) {
-	// Ambient.
-	vec3 ambient = light.ambient * texture(material.diffuse_map, tex_coord).rgb;
-	
-	// Diffuse.
-	vec3 ray_direction = normalize(light.position - frag_position);
-	float diffuse_strength = max(dot(unit_normal, ray_direction), 0.0f);
-	vec3 diffuse = light.diffuse * diffuse_strength * texture(material.diffuse_map, tex_coord).rgb;
-	
-	// Specular.
-	vec3 reflection_direction = reflect(-ray_direction, unit_normal);
-	float specular_strength = pow(max(dot(view_direction, reflection_direction), 0.0f), material.shininess);
-	vec3 specular = light.specular * specular_strength * texture(material.specular_map, tex_coord).rgb;
+	vec3 specular = pointlights.specular[lightID] * specular_strength * texture(material.specular_map, tex_coord).rgb;
 	
 	// Attenuation.
-	float light_distance = length(light.position - frag_position);
-	float attenuation = 1.0f / (light.constant + light.linear * light_distance + light.quadratic * (light_distance * light_distance));
+	float light_distance = length(pointlights.position[lightID] - frag_position);
+	float attenuation = 1.0f / (pointlights.constant[lightID] + pointlights.linear[lightID] * light_distance + pointlights.quadratic[lightID] * (light_distance * light_distance));
 	ambient *= attenuation;
 	diffuse *= attenuation;
 	specular *= attenuation;
 	
 	return (ambient + diffuse + specular);
 }
-vec3 CalculateSpotLight(SpotLight light, vec3 unit_normal, vec3 view_direction) {
+vec3 CalculateSpotLight(uint lightID, vec3 unit_normal, vec3 view_direction) {
 	// Direction from light to fragment.
-	vec3 ray_direction = normalize(light.position - frag_position);
+	vec3 ray_direction = normalize(spotlights.position[lightID] - frag_position);
 	
 	// Diffuse.
 	float diffuse_strength = max(dot(unit_normal, ray_direction), 0.0f);
@@ -190,21 +177,37 @@ vec3 CalculateSpotLight(SpotLight light, vec3 unit_normal, vec3 view_direction) 
 	float specular_strength = pow(max(dot(view_direction, reflection_direction), 0.0f), material.shininess);
 	
 	// Attenuation.
-	float dist = length(light.position - frag_position);
-	float attenuation = 1.0f / (light.constant + light.linear * dist + light.quadratic * (dist * dist));
+	float dist = length(spotlights.position[lightID] - frag_position);
+	float attenuation = 1.0f / (spotlights.constant[lightID] + spotlights.linear[lightID] * dist + spotlights.quadratic[lightID] * (dist * dist));
 	
 	// Edge fade.
-	float theta = dot(ray_direction, normalize(-light.rotation));
-	float epsilon = light.cutoff - light.outer_cutoff;
-	float intensity = clamp((theta - light.outer_cutoff) / epsilon, 0.0f, 1.0f);
+	float theta = dot(ray_direction, normalize(-spotlights.rotation[lightID]));
+	float epsilon = spotlights.cutoff[lightID] - spotlights.outer_cutoff[lightID];
+	float intensity = clamp((theta - spotlights.outer_cutoff[lightID]) / epsilon, 0.0f, 1.0f);
 	
 	// Final values.
-	vec3 ambient = light.ambient * texture(material.diffuse_map, tex_coord).rgb;
-	vec3 diffuse = light.diffuse * diffuse_strength * texture(material.diffuse_map, tex_coord).rgb;
-	vec3 specular = light.specular * specular_strength * texture(material.specular_map, tex_coord).rgb;
+	vec3 ambient = spotlights.ambient[lightID] * texture(material.diffuse_map, tex_coord).rgb;
+	vec3 diffuse = spotlights.diffuse[lightID] * diffuse_strength * texture(material.diffuse_map, tex_coord).rgb;
+	vec3 specular = spotlights.specular[lightID] * specular_strength * texture(material.specular_map, tex_coord).rgb;
 	ambient *= attenuation * intensity;
 	diffuse *= attenuation * intensity;
 	specular *= attenuation * intensity;
+	
+	return (ambient + diffuse + specular);
+}
+vec3 CalculateDirectionLight(uint lightID, vec3 unit_normal, vec3 view_direction) {
+	// Ambient.
+	vec3 ambient = directionlights.ambient[lightID] * texture(material.diffuse_map, tex_coord).rgb;
+	
+	// Diffuse.
+	vec3 ray_direction = normalize(-directionlights.rotation[lightID]);
+	float diffuse_strength = max(dot(unit_normal, ray_direction), 0.0f);
+	vec3 diffuse = directionlights.diffuse[lightID] * diffuse_strength * texture(material.diffuse_map, tex_coord).rgb;
+	
+	// Specular.
+	vec3 reflection_direction = reflect(-ray_direction, unit_normal);
+	float specular_strength = pow(max(dot(view_direction, reflection_direction), 0.0f), material.shininess);
+	vec3 specular = directionlights.specular[lightID] * specular_strength * texture(material.specular_map, tex_coord).rgb;
 	
 	return (ambient + diffuse + specular);
 }

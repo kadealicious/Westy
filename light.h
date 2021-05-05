@@ -5,8 +5,8 @@
 #include"globals.h"
 
 #define WS_MAX_POINTLIGHTS 4
-#define WS_MAX_SPOTLIGHTS 4
-#define WS_MAX_DIRECTIONLIGHTS 4
+#define WS_MAX_SPOTLIGHTS 1
+#define WS_MAX_DIRECTIONLIGHTS 1
 
 typedef struct wsPointLights {
 	vec3 position[WS_MAX_POINTLIGHTS];
@@ -45,7 +45,7 @@ wsPointLights pointlights;
 wsSpotLights spotlights;
 wsDirectionLights directionlights;
 
-// Intensity is a float from 0-1.  Can't guarantee what happens after 1.
+// Intensity is a float from 0-1.  Can't guarantee what happens after 1, although sometimes it looks pretty cool.
 void wsLightQuickInitp(unsigned int lightID, vec3 position, vec3 color, float intensity);
 // Intensity is a float from 0-1.  Spread is the outer cutoff in degrees.
 void wsLightQuickInitf(unsigned int lightID, vec3 position, vec3 rotation, vec3 color, float intensity, unsigned int spread);
@@ -63,6 +63,7 @@ void wsLightSetColord(unsigned int lightID, vec3 color);
 
 void wsLightSetIntensityp(unsigned int lightID, float intensity);
 void wsLightSetIntensityf(unsigned int lightID, float intensity);
+void wsLightSetIntensityd(unsigned int lightID, float intensity);
 
 void wsLightTogglep(unsigned int lightID, bool turn_on);
 void wsLightTogglef(unsigned int lightID, bool turn_on);

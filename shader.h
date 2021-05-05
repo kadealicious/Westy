@@ -37,8 +37,6 @@ void wsShaderSetNormalMatrix(unsigned int shaderID, mat4 *model);
 
 // Update shader with info from all lights.
 void wsShaderUpdateLights(unsigned int shaderID, unsigned int num_pointlights, unsigned int num_spotlights, unsigned int num_directionlights);
-// Update shader with info from pointlights.
-void wsShaderUpdateLightsp(unsigned int shaderID, unsigned int num_pointlights);
 // Update shader with pointlight info.
 void wsShaderUpdateLightp(unsigned int shaderID, unsigned int lightID);
 // Update shader with spotlight info.

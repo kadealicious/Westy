@@ -105,7 +105,7 @@ void wsGraphicsInitLighting() {
 	}
 	
 	wsLightQuickInitf(0, cameras.position[camera_active], cameras.rotation[camera_active], (vec3){1.0f, 0.0f, 1.0f}, 0.3f, 12.5f);
-	wsLightQuickInitd(0, (vec3){-0.2f, -1.0f, -0.3f}, (vec3){1.0f, 1.0f, 0.8f}, 1.0f);
+	wsLightQuickInitd(0, (vec3){-0.2f, -1.0f, -0.3f}, (vec3){1.0f, 1.0f, 0.8f}, 0.5f);
 }
 
 void wsGraphicsInitTestCube() {
@@ -183,6 +183,7 @@ void wsGraphicsRender() {
 
 // Render world.
 void wsGraphicsWorldRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_perspective, mat4 *matrix_ortho) {
+	// Update cube shader with time, active camera, some transformations, MVP + normal matrices, and lighting info.
 	wsShaderUse(cube_shader);
 	wsShaderSetFloat(cube_shader, "time", glfwGetTime());
 	wsShaderUpdateCamera(cube_shader, camera_active);
@@ -193,15 +194,13 @@ void wsGraphicsWorldRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_p
 		glm_rotate(*matrix_model, glm_rad(cos(glfwGetTime() * (0.65f * (i / 10.0f))) * 125.0f), (vec3){0.0f, 0.0f, 1.0f});
 		wsShaderSetMVP(cube_shader, matrix_model, matrix_view, matrix_perspective);
 		wsShaderSetNormalMatrix(cube_shader, matrix_model);
-		
-		wsShaderUpdateLightsp(cube_shader, WS_MAX_POINTLIGHTS);
-		wsShaderUpdateLightf(cube_shader, 0);
-		wsShaderUpdateLightd(cube_shader, 0);
+		wsShaderUpdateLights(cube_shader, WS_MAX_POINTLIGHTS, WS_MAX_SPOTLIGHTS, WS_MAX_DIRECTIONLIGHTS);
 		
 		glBindVertexArray(cube_vao);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
 	
+	// Draw pointlight cubes.
 	for(unsigned int i = 0; i < WS_MAX_POINTLIGHTS; i++) {
 		glm_mat4_identity(*matrix_model);
 		glm_translate(*matrix_model, pointlights.position[i]);
@@ -231,7 +230,7 @@ void wsGraphicsUIRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_pers
 		vec3 font_color = {fabs(sin(i * 1.23f)) + 0.25f, fabs(cos(i * 2.73f)) + 0.25f, fabs(sin(i * 0.5f)) + 0.25f};
 		char cube_name[2];
 		vec3 cube_label_position = {cube_positions[i][0], cube_positions[i][1] + 1.0f, cube_positions[i][2]};
-		sprintf(cube_name, "%d", i);
+		sprintf(cube_name, "C%d", i);
 		wsTextBillboardRender(text_billboard_shader, &cube_name[0], cube_label_position, 0.005f, font_color, camera_active, matrix_view, matrix_perspective);
 	}
 	
