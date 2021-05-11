@@ -12,7 +12,7 @@ typedef struct Char {
 } Char;
 
 // Initialize text renderer.
-bool wsTextInit();
+void wsTextInit();
 // Load font face.
 bool wsTextLoadFace(const char *face_path, unsigned int face_size, unsigned int gl_texture_unit);
 // Render text in 2d screenspace.

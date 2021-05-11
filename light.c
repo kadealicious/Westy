@@ -12,7 +12,18 @@ void wsLightInitp(unsigned int lightID, vec3 position, vec3 ambient, vec3 diffus
 void wsLightInitf(unsigned int lightID, vec3 position, vec3 rotation, vec3 ambient, vec3 diffuse, vec3 specular, float constant, float linear, float quadratic, float cutoff, float outer_cutoff);
 void wsLightInitd(unsigned int lightID, vec3 rotation, vec3 ambient, vec3 diffuse, vec3 specular);
 
-void wsLightQuickInitp(unsigned int lightID, vec3 position, vec3 color, float intensity) {
+void wsLightSetSizep(unsigned int lightID, float size);
+void wsLightSetSizef(unsigned int lightID, float size);
+
+void wsLightSetIntensityp(unsigned int lightID, float intensity);
+void wsLightSetIntensityf(unsigned int lightID, float intensity);
+void wsLightSetIntensityd(unsigned int lightID, float intensity);
+
+void wsLightTogglep(unsigned int lightID, bool on);
+void wsLightTogglef(unsigned int lightID, bool on);
+void wsLightToggled(unsigned int lightID, bool on);
+
+void wsLightQuickInitp(unsigned int lightID, vec3 position, vec3 color, float intensity, float size, bool on) {
 	vec3 ambient;
 	glm_vec3_scale(color, 0.1f, ambient);
 	
@@ -26,8 +37,11 @@ void wsLightQuickInitp(unsigned int lightID, vec3 position, vec3 color, float in
 		wsLightCalcLinear(intensity), 
 		wsLightCalcQuadratic(intensity)
 	);
+	wsLightSetIntensityp(lightID, intensity);
+	wsLightSetSizep(lightID, size);
+	wsLightTogglep(lightID, on);
 }
-void wsLightQuickInitf(unsigned int lightID, vec3 position, vec3 rotation, vec3 color, float intensity, unsigned int spread) {
+void wsLightQuickInitf(unsigned int lightID, vec3 position, vec3 rotation, vec3 color, float intensity, float size, unsigned int spread, bool on) {
 	vec3 ambient;
 	glm_vec3_scale(color, 0.1f, ambient);
 	
@@ -44,8 +58,11 @@ void wsLightQuickInitf(unsigned int lightID, vec3 position, vec3 rotation, vec3 
 		cos(glm_rad(5.0f)), 
 		cos(glm_rad(spread + (spread * 0.4f)))
 	);
+	wsLightSetIntensityf(lightID, intensity);
+	wsLightSetSizef(lightID, size);
+	wsLightTogglef(lightID, on);
 }
-void wsLightQuickInitd(unsigned int lightID, vec3 rotation, vec3 color, float intensity) {
+void wsLightQuickInitd(unsigned int lightID, vec3 rotation, vec3 color, float intensity, bool on) {
 	vec3 ambient;
 	glm_vec3_scale(color, 0.1f, ambient);
 	
@@ -57,6 +74,7 @@ void wsLightQuickInitd(unsigned int lightID, vec3 rotation, vec3 color, float in
 		color
 	);
 	wsLightSetIntensityd(lightID, intensity);
+	wsLightToggled(lightID, on);
 }
 
 void wsLightInitp(unsigned int lightID, vec3 position, vec3 ambient, vec3 diffuse, vec3 specular, float constant, float linear, float quadratic) {
@@ -152,15 +170,26 @@ void wsLightSetColord(unsigned int lightID, vec3 color) {
 	}
 }
 
+void wsLightSetSizep(unsigned int lightID, float size) {
+	pointlights.constant[lightID]	= wsLightCalcConstant(size);
+	pointlights.linear[lightID]		= wsLightCalcLinear(size);
+	pointlights.quadratic[lightID]	= wsLightCalcQuadratic(size);
+}
+void wsLightSetSizef(unsigned int lightID, float size) {
+	spotlights.constant[lightID]	= wsLightCalcConstant(size);
+	spotlights.linear[lightID]		= wsLightCalcLinear(size);
+	spotlights.quadratic[lightID]	= wsLightCalcQuadratic(size);
+}
+
 void wsLightSetIntensityp(unsigned int lightID, float intensity) {
-	pointlights.constant[lightID]	= wsLightCalcConstant(intensity);
-	pointlights.linear[lightID]		= wsLightCalcLinear(intensity);
-	pointlights.quadratic[lightID]	= wsLightCalcQuadratic(intensity);
+	glm_vec3_scale(pointlights.color[lightID], intensity * 0.1f, pointlights.ambient[lightID]);
+	glm_vec3_scale(pointlights.color[lightID], intensity, pointlights.diffuse[lightID]);
+	glm_vec3_scale(pointlights.color[lightID], intensity, pointlights.specular[lightID]);
 }
 void wsLightSetIntensityf(unsigned int lightID, float intensity) {
-	spotlights.constant[lightID]	= wsLightCalcConstant(intensity);
-	spotlights.linear[lightID]		= wsLightCalcLinear(intensity);
-	spotlights.quadratic[lightID]	= wsLightCalcQuadratic(intensity);
+	glm_vec3_scale(spotlights.color[lightID], intensity * 0.1f, spotlights.ambient[lightID]);
+	glm_vec3_scale(spotlights.color[lightID], intensity, spotlights.diffuse[lightID]);
+	glm_vec3_scale(spotlights.color[lightID], intensity, spotlights.specular[lightID]);
 }
 void wsLightSetIntensityd(unsigned int lightID, float intensity) {
 	glm_vec3_scale(directionlights.color[lightID], intensity * 0.1f, directionlights.ambient[lightID]);
@@ -168,42 +197,10 @@ void wsLightSetIntensityd(unsigned int lightID, float intensity) {
 	glm_vec3_scale(directionlights.color[lightID], intensity, directionlights.specular[lightID]);
 }
 
-void wsLightTogglep(unsigned int lightID, bool turn_on) {
-	if(turn_on) {
-		for(unsigned int i = 0; i < 3; i++) {
-			pointlights.ambient[lightID][i]		= pointlights.color[lightID][i] * 0.1f;
-			pointlights.diffuse[lightID][i]		= pointlights.color[lightID][i];
-			pointlights.specular[lightID][i]	= pointlights.color[lightID][i];
-		}
-	} else {
-		glm_vec3_zero(pointlights.ambient[lightID]);
-		glm_vec3_zero(pointlights.diffuse[lightID]);
-		glm_vec3_zero(pointlights.specular[lightID]);
-	}
-}
-void wsLightTogglef(unsigned int lightID, bool turn_on) {
-	if(turn_on) {
-		for(unsigned int i = 0; i < 3; i++) {
-			spotlights.ambient[lightID][i]	= spotlights.color[lightID][i] * 0.1f;
-			spotlights.diffuse[lightID][i]	= spotlights.color[lightID][i];
-			spotlights.specular[lightID][i]	= spotlights.color[lightID][i];
-		}
-	} else {
-		glm_vec3_zero(spotlights.ambient[lightID]);
-		glm_vec3_zero(spotlights.diffuse[lightID]);
-		glm_vec3_zero(spotlights.specular[lightID]);
-	}
-}
-void wsLightToggled(unsigned int lightID, bool turn_on) {
-	if(turn_on) {
-		for(unsigned int i = 0; i < 3; i++) {
-			directionlights.ambient[lightID][i]	= directionlights.color[lightID][i] * 0.1f;
-			directionlights.diffuse[lightID][i]	= directionlights.color[lightID][i];
-			directionlights.specular[lightID][i]	= directionlights.color[lightID][i];
-		}
-	} else {
-		glm_vec3_zero(directionlights.ambient[lightID]);
-		glm_vec3_zero(directionlights.diffuse[lightID]);
-		glm_vec3_zero(directionlights.specular[lightID]);
-	}
-}
+void wsLightTogglep(unsigned int lightID, bool on) { pointlights.toggle[lightID] = on; }
+void wsLightTogglef(unsigned int lightID, bool on) { spotlights.toggle[lightID] = on; }
+void wsLightToggled(unsigned int lightID, bool on) { directionlights.toggle[lightID] = on; }
+
+bool wsLightGetTogglep(unsigned int lightID) { return pointlights.toggle[lightID]; }
+bool wsLightGetTogglef(unsigned int lightID) { return spotlights.toggle[lightID]; }
+bool wsLightGetToggled(unsigned int lightID) { return directionlights.toggle[lightID]; }

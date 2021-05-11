@@ -33,6 +33,7 @@ enum RELATIVE_DIRECTIONS { FORWARD, RIGHT, UP, BACKWARD, LEFT, DOWN };
 struct wsCameras cameras;
 
 void wsCameraInit(unsigned int cameraID, vec3 position, vec3 rotation, float fov);
+
 void wsCameraSyncRotation(unsigned int cameraID);
 void wsCameraGenViewMatrix(unsigned int cameraID, mat4 *view_dest);
 void wsCameraMakeFPS(unsigned int cameraID, mat4 *view_dest, float speed, float pitch_constraint);

@@ -12,6 +12,8 @@ struct Material {
 };
 
 struct PointLights {
+	bool toggle[MAX_POINTLIGHTS];
+	
 	vec3 position[MAX_POINTLIGHTS];
 	
 	vec3 ambient[MAX_POINTLIGHTS];
@@ -23,6 +25,8 @@ struct PointLights {
 	float quadratic[MAX_POINTLIGHTS];
 };
 struct SpotLights {
+	bool toggle[MAX_SPOTLIGHTS];
+	
 	vec3 position[MAX_SPOTLIGHTS];
 	vec3 rotation[MAX_SPOTLIGHTS];
 	
@@ -38,6 +42,8 @@ struct SpotLights {
 	float quadratic[MAX_SPOTLIGHTS];
 };
 struct DirectionLights {
+	bool toggle[MAX_DIRECTIONLIGHTS];
+	
 	vec3 rotation[MAX_DIRECTIONLIGHTS];
 	
 	vec3 ambient[MAX_DIRECTIONLIGHTS];
@@ -93,14 +99,22 @@ void main() {
 	vec3 view_direction = normalize(view_position - frag_position);
 	float light_intensity = 1.0;
 	
-	float light_color_magnitude;
-	for(uint i = 0; i < MAX_POINTLIGHTS; i++)
-		light_color += CalculatePointLight(i, unit_normal, view_direction) * light_intensity;
-	for(uint i = 0; i < MAX_SPOTLIGHTS; i++)
-		light_color += CalculateSpotLight(i, unit_normal, view_direction) * light_intensity;
-	for(uint i = 0; i < MAX_DIRECTIONLIGHTS; i++)
-		light_color += CalculateDirectionLight(i, unit_normal, view_direction) * light_intensity;
+	for(uint i = 0; i < MAX_POINTLIGHTS; i++) {
+		if(pointlights.toggle[i])
+			light_color += CalculatePointLight(i, unit_normal, view_direction) * light_intensity;
+	}
 	
+	for(uint i = 0; i < MAX_SPOTLIGHTS; i++) {
+		if(spotlights.toggle[i])
+			light_color += CalculateSpotLight(i, unit_normal, view_direction) * light_intensity;
+	}
+	
+	for(uint i = 0; i < MAX_DIRECTIONLIGHTS; i++) {
+		if(directionlights.toggle[i])
+			light_color += CalculateDirectionLight(i, unit_normal, view_direction) * light_intensity;
+	}
+	
+	float light_color_magnitude;
 	light_color_magnitude = length(light_color);
 	light_color += pow(light_color_magnitude, 2.0) * 2;
 	

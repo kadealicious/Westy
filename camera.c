@@ -10,7 +10,6 @@ void wsCameraMouseMove(unsigned int cameraID, float offsetx, float offsety, floa
 void wsCameraMouseMoveDamp(unsigned int cameraID, float offsetx, float offsety, float pitch_constraint, float damp);
 
 void wsCameraInit(unsigned int cameraID, vec3 position, vec3 rotation, float fov) {
-	
 	for(unsigned int i = 0; i < 3; i++) {
 		cameras.position[cameraID][i]		= position[i];
 		cameras.euler[cameraID][i]			= rotation[i];
@@ -26,6 +25,7 @@ void wsCameraInit(unsigned int cameraID, vec3 position, vec3 rotation, float fov
 		cameras.fov[cameraID]);
 }
 
+// Update camera forward, up, and right vectors.  Only used internally.
 void wsCameraSyncRotation(unsigned int cameraID) {
 	cameras.rotation[cameraID][0]	= cos(glm_rad(cameras.euler[cameraID][YAW])) * cos(glm_rad(cameras.euler[cameraID][PITCH]));
 	cameras.rotation[cameraID][1]	= sin(glm_rad(cameras.euler[cameraID][PITCH]));
@@ -33,9 +33,9 @@ void wsCameraSyncRotation(unsigned int cameraID) {
 	glm_normalize(cameras.rotation[cameraID]);
 	
 	// glm_vec3_copy() gives a warning and warnings stress me out.
-	cameras.up[cameraID][0] = WORLD_UP[0];
-	cameras.up[cameraID][1] = WORLD_UP[1];
-	cameras.up[cameraID][2] = WORLD_UP[2];
+	cameras.up[cameraID][0] = WS_WORLD_UP[0];
+	cameras.up[cameraID][1] = WS_WORLD_UP[1];
+	cameras.up[cameraID][2] = WS_WORLD_UP[2];
 	glm_normalize(cameras.up[cameraID]);
 	
 	glm_vec3_cross(cameras.rotation[cameraID], cameras.up[cameraID], cameras.right[cameraID]);
@@ -49,9 +49,9 @@ void wsCameraSyncRotationDamped(unsigned int cameraID) {
 	glm_normalize(cameras.rotation[cameraID]);
 	
 	// glm_vec3_copy() gives a warning and warnings stress me out.
-	cameras.up[cameraID][0] = WORLD_UP[0];
-	cameras.up[cameraID][1] = WORLD_UP[1];
-	cameras.up[cameraID][2] = WORLD_UP[2];
+	cameras.up[cameraID][0] = WS_WORLD_UP[0];
+	cameras.up[cameraID][1] = WS_WORLD_UP[1];
+	cameras.up[cameraID][2] = WS_WORLD_UP[2];
 	glm_normalize(cameras.up[cameraID]);
 	
 	glm_vec3_cross(cameras.rotation[cameraID], cameras.up[cameraID], cameras.right[cameraID]);

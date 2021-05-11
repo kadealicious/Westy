@@ -5,7 +5,7 @@
 #include"shader.h"
 
 // Max number of font faces allowed.
-#define WS_MAX_FACES 10
+#define WS_MAX_FONT_FACES 10
 
 // Max index of possible chars.  Using ASCII because fuck it.
 const unsigned int WS_NUM_CHARS = 128;
@@ -14,7 +14,7 @@ const unsigned int WS_NUM_CHARS = 128;
 unsigned int text_vao;
 unsigned int text_vbo;
 
-unsigned int texture_units[WS_MAX_FACES];
+unsigned int texture_units[WS_MAX_FONT_FACES];
 unsigned int texture_unit_active;
 static unsigned int texture_units_used = 0;
 
@@ -23,7 +23,7 @@ mat4 matrix_perspective;
 Char *font_chars;
 
 // Initialize text renderer.
-bool wsTextInit() {
+void wsTextInit() {
 	font_chars = malloc(sizeof(*font_chars) * WS_NUM_CHARS);
 	
 	// For struct packing, disables byte-alignment restriction.
@@ -40,13 +40,19 @@ bool wsTextInit() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	
-	printf("FreeType init success\n");
-	return true;
+	printf("Text init success\n");
+}
+
+void wsPrintChar(Char *ch, char c) {
+	printf("Char %c\n", c);
+	printf("advance: %d\n", font_chars[(int)c].advance);
+	wsPrintVec2(&font_chars[(int)c].size, "size");
+	wsPrintVec2(&font_chars[(int)c].bearing, "bearing");
 }
 
 // Load font face.
 bool wsTextLoadFace(const char *face_path, unsigned int face_size, unsigned int gl_texture_unit) {
-	if(texture_units_used >= WS_MAX_FACES) {
+	if(texture_units_used >= WS_MAX_FONT_FACES) {
 		printf("ERROR - Max number of font faces used\n");
 		return false;
 	}
@@ -112,7 +118,7 @@ bool wsTextLoadFace(const char *face_path, unsigned int face_size, unsigned int 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		
-		// Actual Char initialization.  Don't feel like abstracting this into a function.
+		// Actual Char initialization.  I don't feel like abstracting this into a function.
 		font_chars[i].textureID = textureID;
 		font_chars[i].advance = ft_face->glyph->advance.x;
 		font_chars[i].size[0] = glyph_width;

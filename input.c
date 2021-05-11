@@ -15,24 +15,18 @@ void wsInputInit(GLFWwindow *window, float sensitivity) {
 	window = window;
     mouse_sensitivity = sensitivity;
 
-    printf("Input initialized\n");
+    printf("Input init success\n");
 }
 
-bool wsInputGetPress(int key)
-	{ return (glfwGetKey(window, key) == GLFW_PRESS); }
-bool wsInputGetRelease(int key)
-	{ return (glfwGetKey(window, key) == GLFW_RELEASE); }
+bool wsInputGetPress(int key)		{ return (glfwGetKey(window, key) == GLFW_PRESS); }
+bool wsInputGetPressOnce(int key)	{ return (glfwGetKeyOnce(window, key) == GLFW_PRESS); }
+bool wsInputGetRelease(int key)		{ return (glfwGetKey(window, key) == GLFW_RELEASE); }
 
-float wsInputGetMousePosX()
-	{ return mouse_position[0]; }
-float wsInputGetMousePosY()
-	{ return mouse_position[1]; }
-float wsInputGetMouseMoveX()
-	{ return mouse_position[0] - mouse_position_prev[0]; }
-float wsInputGetMouseMoveY()
-	{ return mouse_position[1] - mouse_position_prev[1]; }
-float wsInputGetMouseScrollY()
-	{ return mouse_scroll; }
+float wsInputGetMousePosX()		{ return mouse_position[0]; }
+float wsInputGetMousePosY()		{ return mouse_position[1]; }
+float wsInputGetMouseMoveX()	{ return mouse_position[0] - mouse_position_prev[0]; }
+float wsInputGetMouseMoveY()	{ return mouse_position[1] - mouse_position_prev[1]; }
+float wsInputGetMouseScrollY()	{ return mouse_scroll; }
 void wsInputUpdate() {
 	mouse_position_prev[0] = mouse_position[0];
 	mouse_position_prev[1] = mouse_position[1];

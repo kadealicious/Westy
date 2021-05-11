@@ -20,9 +20,6 @@ void wsPrintMat4(mat4 *mat, const char *tag) {
 	}
 }
 
-void wsPrintVec2(vec2 *vec, const char *tag)
-	{ printf("'%s' vec2 @ %p:\t%.2f %.2f\n", tag, vec, (*vec)[0], (*vec)[1]); }
-void wsPrintVec3(vec3 *vec, const char *tag)
-	{ printf("'%s' vec3 @ %p:\t%.2f %.2f %.2f\n", tag, vec, (*vec)[0], (*vec)[1], (*vec)[2]); }
-void wsPrintVec4(vec4 *vec, const char *tag)
-	{ printf("'%s' vec4 @ %p:\t%.2f %.2f %.2f %.2f\n", tag, vec, (*vec)[0], (*vec)[1], (*vec)[2]); }
+void wsPrintVec2(vec2 *vec, const char *tag) { printf("'%s' vec2 @ %p:\t%.2f %.2f\n", tag, vec, (*vec)[0], (*vec)[1]); }
+void wsPrintVec3(vec3 *vec, const char *tag) { printf("'%s' vec3 @ %p:\t%.2f %.2f %.2f\n", tag, vec, (*vec)[0], (*vec)[1], (*vec)[2]); }
+void wsPrintVec4(vec4 *vec, const char *tag) { printf("'%s' vec4 @ %p:\t%.2f %.2f %.2f %.2f\n", tag, vec, (*vec)[0], (*vec)[1], (*vec)[2]); }

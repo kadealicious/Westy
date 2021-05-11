@@ -9,16 +9,12 @@
 #include<ft2build.h>
 #include<freetype/freetype.h>
 
-char key_once[GLFW_KEY_LAST + 1];
-#define glfwGetKeyOnce(window, key)             \
-    (glfwGetKey(window, key) ?              \
-     (key_once[key] ? false : (key_once[key] = true)) :   \
-     (key_once[key] = false))
-
 enum ERROR_STATES { WS_OKAY, WS_QUIT_NORMAL, WS_QUIT_NORMAL_CONSOLE, WS_ERROR_GLFW, WS_ERROR_GLEW, 
 	WS_ERROR_FREETYPE, WS_ERROR_UNKNOWN };
 
-extern const vec3 WORLD_UP;
+extern const vec3 WS_WORLD_UP;
+extern const vec3 WS_WORLD_RIGHT;
+extern const vec3 WS_WORLD_FORWARD;
 
 extern int window_width;
 extern int window_height;

@@ -5,7 +5,7 @@
 #include"camera.h"
 
 // Initializes models, cameras, lighting, UI.
-unsigned short wsGraphicsInit();
+int wsGraphicsInit();
 
 // Call all render functions in Graphics.
 void wsGraphicsRender();

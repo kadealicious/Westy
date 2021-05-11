@@ -1,8 +1,8 @@
 CC=gcc
 CFLAGS=-std=c99 -Wall
 LIB=-lmingw32 -lglfw3dll -lopengl32 -lfreetype6
-DEPS=globals.h graphics.h shader.h input.h camera.h model.h material.h light.h font.h
-OBJ=main.o globals.o graphics.o shader.o input.o camera.o model.o material.o light.o text.o glew.o
+DEPS=globals.h graphics.h deferredrenderer.h shader.h input.h camera.h model.h material.h light.h font.h
+OBJ=main.o globals.o graphics.o deferredrenderer.o shader.o input.o camera.o model.o material.o light.o text.o glew.o
 
 all: app
 
@@ -14,6 +14,8 @@ glew.o: glew.c
 globals.o: globals.c globals.h
 	$(CC) $(CFLAGS) -c $^
 graphics.o: graphics.c graphics.h
+	$(CC) $(CFLAGS) -c $^
+deferredrenderer.o: deferredrenderer.c deferredrenderer.h
 	$(CC) $(CFLAGS) -c $^
 shader.o: shader.c shader.h
 	$(CC) $(CFLAGS) -c $^

@@ -3,9 +3,16 @@
 
 #include"globals.h"
 
+char key_once[GLFW_KEY_LAST + 1];
+#define glfwGetKeyOnce(window, key)             \
+    (glfwGetKey(window, key) ?              \
+     (key_once[key] ? false : (key_once[key] = true)) :   \
+     (key_once[key] = false))
+
 void wsInputInit(GLFWwindow *window, float sensitivity);
 
 bool wsInputGetPress(int key);
+bool wsInputGetPressOnce(int key);
 bool wsInputGetRelease(int key);
 float wsInputGetMousePosX();
 float wsInputGetMousePosY();

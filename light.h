@@ -9,6 +9,7 @@
 #define WS_MAX_DIRECTIONLIGHTS 1
 
 typedef struct wsPointLights {
+	bool toggle[WS_MAX_POINTLIGHTS];
 	vec3 position[WS_MAX_POINTLIGHTS];
 	vec3 color[WS_MAX_POINTLIGHTS];
 	vec3 ambient[WS_MAX_POINTLIGHTS];
@@ -20,6 +21,7 @@ typedef struct wsPointLights {
 } wsPointLights;
 
 typedef struct wsSpotLights {
+	bool toggle[WS_MAX_SPOTLIGHTS];
 	vec3 position[WS_MAX_SPOTLIGHTS];
 	vec3 rotation[WS_MAX_SPOTLIGHTS];
 	vec3 color[WS_MAX_SPOTLIGHTS];
@@ -34,6 +36,7 @@ typedef struct wsSpotLights {
 } wsSpotLights;
 
 typedef struct wsDirectionLights {
+	bool toggle[WS_MAX_DIRECTIONLIGHTS];
 	vec3 rotation[WS_MAX_DIRECTIONLIGHTS];
 	vec3 color[WS_MAX_DIRECTIONLIGHTS];
 	vec3 ambient[WS_MAX_DIRECTIONLIGHTS];
@@ -46,11 +49,11 @@ wsSpotLights spotlights;
 wsDirectionLights directionlights;
 
 // Intensity is a float from 0-1.  Can't guarantee what happens after 1, although sometimes it looks pretty cool.
-void wsLightQuickInitp(unsigned int lightID, vec3 position, vec3 color, float intensity);
+void wsLightQuickInitp(unsigned int lightID, vec3 position, vec3 color, float intensity, float size, bool on);
 // Intensity is a float from 0-1.  Spread is the outer cutoff in degrees.
-void wsLightQuickInitf(unsigned int lightID, vec3 position, vec3 rotation, vec3 color, float intensity, unsigned int spread);
+void wsLightQuickInitf(unsigned int lightID, vec3 position, vec3 rotation, vec3 color, float intensity, float size, unsigned int spread, bool on);
 // Intensity is a float from 0-1.
-void wsLightQuickInitd(unsigned int lightID, vec3 rotation, vec3 color, float intensity);
+void wsLightQuickInitd(unsigned int lightID, vec3 rotation, vec3 color, float intensity, bool on);
 
 void wsLightSetPositionp(unsigned int lightID, vec3 position);
 void wsLightSetPositionf(unsigned int lightID, vec3 position);
@@ -61,12 +64,19 @@ void wsLightSetColorp(unsigned int lightID, vec3 color);
 void wsLightSetColorf(unsigned int lightID, vec3 color);
 void wsLightSetColord(unsigned int lightID, vec3 color);
 
+void wsLightSetSizep(unsigned int lightID, float size);
+void wsLightSetSizef(unsigned int lightID, float size);
+
 void wsLightSetIntensityp(unsigned int lightID, float intensity);
 void wsLightSetIntensityf(unsigned int lightID, float intensity);
 void wsLightSetIntensityd(unsigned int lightID, float intensity);
 
-void wsLightTogglep(unsigned int lightID, bool turn_on);
-void wsLightTogglef(unsigned int lightID, bool turn_on);
-void wsLightToggled(unsigned int lightID, bool turn_on);
+void wsLightTogglep(unsigned int lightID, bool on);
+void wsLightTogglef(unsigned int lightID, bool on);
+void wsLightToggled(unsigned int lightID, bool on);
+
+bool wsLightGetTogglep(unsigned int lightID);
+bool wsLightGetTogglef(unsigned int lightID);
+bool wsLightGetToggled(unsigned int lightID);
 
 #endif
