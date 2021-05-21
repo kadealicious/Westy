@@ -11,6 +11,8 @@
 unsigned int wsShaderLoad(const char *path_vert, const char *path_frag, bool use_on_load, bool print_on_load);
 // Use shader.
 void wsShaderUse(unsigned int shaderID);
+// Get active shader.
+unsigned int wsShaderGetActive();
 // Set shader bool.
 void wsShaderSetBool(unsigned int shaderID, const char *var_name, bool value);
 // Set shader int.
@@ -35,8 +37,6 @@ void wsShaderSetMVP(unsigned int shaderID, mat4 *model, mat4 *view, mat4 *projec
 // Update shader's matrix_normal.
 void wsShaderSetNormalMatrix(unsigned int shaderID, mat4 *model);
 
-// Update shader with info from all lights.
-void wsShaderUpdateLights(unsigned int shaderID, unsigned int num_pointlights, unsigned int num_spotlights, unsigned int num_directionlights);
 // Update shader with pointlight info.
 void wsShaderUpdateLightp(unsigned int shaderID, unsigned int lightID);
 // Update shader with spotlight info.

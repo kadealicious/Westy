@@ -1,0 +1,30 @@
+Detecting C compiler ABI info failed to compile with the following output:
+Change Dir: Q:/programming/westy/src/lib/assimp-5.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):make -f Makefile /nologo cmTC_165dc\fast && Makefile:37: *** missing separator.  Stop.
+
+
+
+
+Determining if the C compiler works failed with the following output:
+Change Dir: Q:/programming/westy/src/lib/assimp-5.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):make -f Makefile /nologo cmTC_390b6\fast && Makefile:37: *** missing separator.  Stop.
+
+
+
+Detecting C compiler ABI info failed to compile with the following output:
+Change Dir: Q:/programming/westy/src/lib/assimp-5.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):make -f Makefile /nologo cmTC_fe689\fast && Makefile:37: *** missing separator.  Stop.
+
+
+
+
+Determining if the C compiler works failed with the following output:
+Change Dir: Q:/programming/westy/src/lib/assimp-5.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):make -f Makefile /nologo cmTC_a4ec5\fast && Makefile:37: *** missing separator.  Stop.
+
+
+

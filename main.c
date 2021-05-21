@@ -18,6 +18,8 @@ int win_posx;
 int win_posy;
 int window_width	= 640;
 int window_height	= 480;
+int screen_width	= 640;
+int screen_height	= 480;
 unsigned int target_fps = 60;
 float delta_time = 1.0f;
 
@@ -76,7 +78,6 @@ bool wsInitGLEW() {
 	} else printf("GLEW init success\n");
 	return true;
 }
-
 bool wsInitGLFW() {
 	if(!glfwInit()) {
 		fprintf(stderr, "ERROR - GLFW init fail\n");
@@ -84,7 +85,7 @@ bool wsInitGLFW() {
 	}
 	
 	// All GLFW initialization shtuff.
-	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_SAMPLES, 1);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -106,6 +107,8 @@ bool wsInitGLFW() {
 	const GLFWvidmode *video_mode	= glfwGetVideoMode(monitor_primary);
 	window_width	= video_mode->width / 2;
 	window_height	= video_mode->height / 2;
+	screen_width = window_width;
+	screen_height = window_height;
 	
 	float content_scale_x;
 	float content_scale_y;
@@ -116,7 +119,7 @@ bool wsInitGLFW() {
 	printf("Window dimensions: %d x %d\n", window_width, window_height);
 	printf("Monitor content scale: %f x %f\n", content_scale_x, content_scale_y);
 	
-	window = glfwCreateWindow(window_width, window_height, "OI'D LOIK TO MAKE MOYSELF BUHLIEVE", NULL, NULL);
+	window = glfwCreateWindow(window_width, window_height, "Deferred rendering?  More like deferred findings.", NULL, NULL);
 	if(window == NULL) {
 		fprintf(stderr, "ERROR - Failed to open GLFW window\n");
 		return false;
@@ -167,9 +170,17 @@ int wsRun() {
 			if(glfwGetWindowMonitor(window) == NULL) {
 				printf("Switching to fullscreen mode...\n");
 				glfwSetWindowMonitor(window, monitor_primary, 0, 0, monitor_width, monitor_height, target_fps);
+				screen_width = monitor_width;
+				screen_height = monitor_height;
+				
+				wsDefRenResize();
 			} else {
 				printf("Switching to windowed mode...\n");
 				glfwSetWindowMonitor(window, NULL, win_posx, win_posy, window_width, window_height, target_fps);
+				screen_width = window_width;
+				screen_height = window_height;
+				
+				wsDefRenResize();
 			}
 		}
 		
@@ -191,7 +202,6 @@ void wsCenterWindow(GLFWwindow *window) {
 	win_posx = (monitor_width / 2) - (window_width / 2);
 	win_posy = (monitor_height / 2) - (window_height / 2);
 }
-
 // For monitor state changes.
 void wsMonitorCallback(GLFWmonitor *monitor, int ev) {
 	switch(ev) {
@@ -208,7 +218,6 @@ void wsMonitorCallback(GLFWmonitor *monitor, int ev) {
 			break;
 	}
 }
-
 void wsFrameBufferSizeCallback(GLFWwindow *window, int width, int height) {
 	glViewport(0, 0, width, height);
 	printf("Frame buffer size changed to: %d x %d\n", width, height);
@@ -258,10 +267,3 @@ int wsQuit(unsigned int app_state) {
 	printf("~QUIT~\n");
 	return app_state;
 }
-
-// DEBUG SHIT.
-/*void PrintMemoryUsage() {
-	struct rusage memusage;
-	getrusage(RUSAGE_SELF, &memusage);
-	printf("Nerd stat: %ld\n", memusage.ru_maxrss);
-}*/

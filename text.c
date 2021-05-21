@@ -4,19 +4,12 @@
 #include"text.h"
 #include"shader.h"
 
-// Max number of font faces allowed.
-#define WS_MAX_FONT_FACES 10
-
 // Max index of possible chars.  Using ASCII because fuck it.
 const unsigned int WS_NUM_CHARS = 128;
 
 // For textured quads method.
 unsigned int text_vao;
 unsigned int text_vbo;
-
-unsigned int texture_units[WS_MAX_FONT_FACES];
-unsigned int texture_unit_active;
-static unsigned int texture_units_used = 0;
 
 mat4 matrix_ortho;
 mat4 matrix_perspective;
@@ -51,14 +44,7 @@ void wsPrintChar(Char *ch, char c) {
 }
 
 // Load font face.
-bool wsTextLoadFace(const char *face_path, unsigned int face_size, unsigned int gl_texture_unit) {
-	if(texture_units_used >= WS_MAX_FONT_FACES) {
-		printf("ERROR - Max number of font faces used\n");
-		return false;
-	}
-	texture_unit_active = texture_units_used++;
-	texture_units[texture_unit_active] = gl_texture_unit;
-	
+bool wsTextLoadFace(const char *face_path, unsigned int face_size) {
 	// Necessary for loading fonts in.
 	FT_Library ft_lib;
 	FT_Face ft_face;
@@ -98,7 +84,6 @@ bool wsTextLoadFace(const char *face_path, unsigned int face_size, unsigned int 
 		// Generate texture.
 		unsigned int textureID;
 		glGenTextures(1, &textureID);
-		glActiveTexture(texture_units[texture_unit_active]);
 		glBindTexture(GL_TEXTURE_2D, textureID);
 		glTexImage2D(
 			GL_TEXTURE_2D,  
@@ -136,6 +121,11 @@ bool wsTextLoadFace(const char *face_path, unsigned int face_size, unsigned int 
 
 // Render text in 2d screenspace.
 void wsTextRender(unsigned int shaderID, const char* text, vec2 position, float scale, vec3 color, mat4 *matrix_ortho) {
+	// Scale all parameters to be consistent across different screen resolutions.
+	float yscale = screen_height / 1080;
+	glm_vec3_scale(position, yscale, position);
+	scale *= yscale;
+	
 	// Use shader, set color and projection matrices.  Texture unit too!!
 	wsShaderUse(shaderID);
 	wsShaderSetVec3(shaderID, "text_color", color);
@@ -163,7 +153,7 @@ void wsTextRender(unsigned int shaderID, const char* text, vec2 position, float 
 		};
 		
 		// Bind texture.
-		glActiveTexture(texture_units[texture_unit_active]);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, ch.textureID);
 		
 		// Set vertex array/buffer data.
@@ -185,6 +175,11 @@ void wsTextRender(unsigned int shaderID, const char* text, vec2 position, float 
 
 // Render billboard text in 3d worldspace.
 void wsTextBillboardRender(unsigned int shaderID, const char* text, vec3 position, float scale, vec3 color, unsigned int cameraID, mat4 *matrix_view, mat4 *matrix_perspective) {
+	// Scale all parameters to be consistent across different screen resolutions.
+	float yscale = screen_height / 1080;
+	glm_vec3_scale(position, yscale, position);
+	scale *= yscale;
+	
 	// Calculate end width + height for centering.
 	float half_width = 0.0f;
 	for(unsigned int i = 0; i < strlen(text); i++) {
@@ -237,7 +232,7 @@ void wsTextBillboardRender(unsigned int shaderID, const char* text, vec3 positio
 		};
 		
 		// Bind texture.
-		glActiveTexture(texture_units[texture_unit_active]);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, ch.textureID);
 		
 		// Set vertex array/buffer data.

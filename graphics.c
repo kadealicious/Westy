@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include"stb_image.h"
 
@@ -29,8 +30,6 @@ unsigned int text_shader, text_billboard_shader;
 unsigned int light_shader;
 unsigned int cube_shader;
 
-static unsigned int next_avaliable_texture_unit = GL_TEXTURE0;
-
 unsigned int cube_diffuse_map;
 unsigned int cube_specular_map;
 
@@ -50,12 +49,7 @@ vec3 cube_positions[] = {
     {-1.3f,  1.0f, -1.5f}  
 };
 
-vec3 pointlight_positions[] = {
-	{ 0.7f,  0.2f,  2.0f},
-	{ 2.3f, -3.3f, -4.0f},
-	{-4.0f,  2.0f, -12.0f},
-	{ 0.0f,  0.0f, -3.0f}
-};
+vec3 pointlight_positions[WS_MAX_POINTLIGHTS];
 
 int wsGraphicsInit();
 void wsGraphicsInitText();
@@ -65,23 +59,22 @@ void wsGraphicsInitTestCube();
 void wsGraphicsRender();
 void wsGraphicsTerminate();
 
-void wsGraphicsLoadTexture(const char *path, unsigned int *dest_texture, unsigned int gl_texture_unit, unsigned int wrap_style, unsigned int filter_style);
+void wsGraphicsLoadTexture(const char *path, unsigned int *dest_texture, unsigned int wrap_style, unsigned int filter_style);
 // void wsGraphicsFPSCamera(unsigned int ndx, mat4 *view_dest, float speed, float pitch_constraint);
 
 int wsGraphicsInit() {
 	stbi_set_flip_vertically_on_load(true);
 	
+	// Set constant OpenGL states.
 	glClearColor(0.025f, 0.025f, 0.025f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_FRAMEBUFFER_SRGB);
 	
+	wsDefRenInit();
 	wsGraphicsInitText();
 	wsGraphicsInitLighting();
 	wsGraphicsInitTestCube();
-	wsDeferredRendererInit();
 	
 	camera_active = WS_CAMERA0;
 	wsCameraInit(camera_active, (vec3){0.0f, 0.0f, 3.0f}, (vec3){0.0f, -90.0f, 0.0f}, 90.0f);
@@ -95,14 +88,21 @@ void wsGraphicsInitText() {
 	text_billboard_shader = wsShaderLoad("shaders/text_billboard.vert", "shaders/text_billboard.frag", false, false);
 	
 	wsTextInit();
-	wsTextLoadFace("fonts/Roboto_Mono/static/RobotoMono-Medium.ttf", 108, next_avaliable_texture_unit++);
+	wsTextLoadFace("fonts/Roboto_Mono/static/RobotoMono-Medium.ttf", 108);
 }
 void wsGraphicsInitLighting() {
+	int spread = 15;
+	for(unsigned int i = 0; i < WS_MAX_POINTLIGHTS; i++) {
+		pointlight_positions[i][0] = (rand() % spread) - (spread * 0.5f);
+		pointlight_positions[i][1] = (rand() % spread) - (spread * 0.5f);
+		pointlight_positions[i][2] = (rand() % spread) - (spread * 0.5f);
+	}
+	
 	light_shader = wsShaderLoad("shaders/lightsource.vert", "shaders/lightsource.frag", false, false);
 	
-	for(unsigned int i = 0; i < WS_MAX_POINTLIGHTS; i++)		wsLightQuickInitp(i, pointlight_positions[i], (vec3){0.4f, 0.85f, 0.0f}, 0.45f, 0.45f, true);
-	for(unsigned int i = 0; i < WS_MAX_SPOTLIGHTS; i++)			wsLightQuickInitf(0, cameras.position[camera_active], cameras.rotation[camera_active], (vec3){0.7f, 0.7f, 0.5f}, 1.0f, 0.5f, 17.5f, false);
-	for(unsigned int i = 0; i < WS_MAX_DIRECTIONLIGHTS; i++)	wsLightQuickInitd(0, (vec3){-0.2f, -1.0f, -0.3f}, (vec3){1.0f, 0.8f, 0.0f}, 0.5f, false);
+	for(unsigned int i = 0; i < WS_MAX_POINTLIGHTS; i++)		wsLightInitp(i, pointlight_positions[i], (vec3){0.4f, 0.85f, 0.0f}, 0.5f, 0.5f, true);
+	for(unsigned int i = 0; i < WS_MAX_SPOTLIGHTS; i++)			wsLightInitf(0, cameras.position[camera_active], cameras.rotation[camera_active], (vec3){0.7f, 0.7f, 0.5f}, 1.0f, 0.5f, 17.5f, false);
+	for(unsigned int i = 0; i < WS_MAX_DIRECTIONLIGHTS; i++)	wsLightInitd(0, (vec3){-0.2f, -1.0f, -0.3f}, (vec3){1.0f, 0.8f, 0.0f}, 0.1f, false);
 }
 void wsGraphicsInitTestCube() {
 	cube_shader = wsShaderLoad("shaders/textured_phong_dithered.vert", "shaders/textured_phong_dithered.frag", false, false);
@@ -129,18 +129,12 @@ void wsGraphicsInitTestCube() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	
-	unsigned int diffuse_unit = next_avaliable_texture_unit++;
-	unsigned int specular_unit = next_avaliable_texture_unit++;
-	wsGraphicsLoadTexture("textures/test/woodcrate_diffuse.png", &cube_diffuse_map, diffuse_unit, GL_CLAMP_TO_EDGE, GL_NEAREST);
-	wsGraphicsLoadTexture("textures/test/woodcrate_specular.png", &cube_specular_map, specular_unit, GL_CLAMP_TO_EDGE, GL_NEAREST);
-	wsShaderSetInt(cube_shader, "material.diffuse_map", diffuse_unit - GL_TEXTURE0);
-	wsShaderSetInt(cube_shader, "material.specular_map", specular_unit - GL_TEXTURE0);
-	wsShaderSetFloat(cube_shader, "material.shininess", cube_material.shininess);
+	wsGraphicsLoadTexture("textures/test/woodcrate_diffuse.png", &cube_diffuse_map, GL_CLAMP_TO_EDGE, GL_NEAREST);
+	wsGraphicsLoadTexture("textures/test/woodcrate_specular.png", &cube_specular_map, GL_CLAMP_TO_EDGE, GL_NEAREST);
 }
 
-void wsGraphicsLoadTexture(const char *path, unsigned int *dest_texture, unsigned int gl_texture_unit, unsigned int wrap_style, unsigned int filter_style) {
+void wsGraphicsLoadTexture(const char *path, unsigned int *dest_texture, unsigned int wrap_style, unsigned int filter_style) {
 	glGenTextures(1, dest_texture);
-	glActiveTexture(gl_texture_unit);
 	glBindTexture(GL_TEXTURE_2D, *dest_texture);
 	
 	// Clamping.
@@ -171,37 +165,110 @@ void wsGraphicsRender() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	// Get perspective and ortho matrices for camera.
-	glm_perspective(glm_rad(cameras.fov[camera_active]), (float)window_width / window_height, 0.1f, 100.0f, matrix_perspective);
-	glm_ortho(0.0f, window_width, 0.0f, window_height, 0.0f, 1000.0f, matrix_ortho);
+	glm_perspective(glm_rad(cameras.fov[camera_active]), (float)screen_width / screen_height, 0.1f, 100.0f, matrix_perspective);
+	glm_ortho(0.0f, screen_width, 0.0f, screen_height, 0.0f, 1000.0f, matrix_ortho);
 	
+	// Handle FPS camera controls, then generate new lookat matrix (for view matrix) using camera position + rotation.
 	wsCameraMakeFPS(camera_active, &matrix_view, 2.5f, 89.0f);
-	wsCameraGenViewMatrix(camera_active, &matrix_view);
 	
+	// Turn off blending for deferred pass.
+	glDisable(GL_BLEND);
+	// Begin deferred rendering.
+	wsDefRenGeometryPass(&matrix_model, &matrix_view, &matrix_perspective, camera_active);
 	wsGraphicsWorldRender(&matrix_model, &matrix_view, &matrix_perspective, &matrix_ortho);
+	wsDefRenLightPass(camera_active);
+	// End deferred rendering.
+	
+	// Turn on blending for forward pass.
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	// Begin forward rendering.
+	wsGraphicsLightsRender(&matrix_model, &matrix_view, &matrix_perspective, &matrix_ortho);
 	wsGraphicsUIRender(&matrix_model, &matrix_view, &matrix_perspective, &matrix_ortho);
+	// End forward rendering.
 }
 
 // Render world.
 void wsGraphicsWorldRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_perspective, mat4 *matrix_ortho) {
-	// Update cube shader with time, active camera, some transformations, MVP + normal matrices, and lighting info.
-	wsShaderUse(cube_shader);
-	wsShaderSetFloat(cube_shader, "time", glfwGetTime());
-	wsShaderUpdateCamera(cube_shader, camera_active);
+	unsigned int shader_active = wsShaderGetActive();
 	for(unsigned int i = 0; i < 10; i++) {
+		// Transform, rotate, then translate model matrix.  matrix multiplication is done in reverse.
 		glm_mat4_identity(*matrix_model);
 		glm_translate(*matrix_model, cube_positions[i]);
 		glm_rotate(*matrix_model, glm_rad(sin(glfwGetTime() * (0.65f)) * 125.0f * (i / 10.0f)), (vec3){0.0f, 1.0f, 0.0f});
 		glm_rotate(*matrix_model, glm_rad(cos(glfwGetTime() * (0.65f * (i / 10.0f))) * 125.0f), (vec3){0.0f, 0.0f, 1.0f});
-		wsShaderSetMVP(cube_shader, matrix_model, matrix_view, matrix_perspective);
-		wsShaderSetNormalMatrix(cube_shader, matrix_model);
-		wsShaderUpdateLights(cube_shader, WS_MAX_POINTLIGHTS, WS_MAX_SPOTLIGHTS, WS_MAX_DIRECTIONLIGHTS);
+		wsShaderSetMat4(shader_active, "model", matrix_model);
+		wsShaderSetNormalMatrix(shader_active, matrix_model);
 		
+		// Bind diffuse + specular textures to their respective units.  Should probably look into specular as alpha in diffuse map?
+		glActiveTexture(GL_TEXTURE0);
+		wsShaderSetInt(shader_active, "texture_diffuse", 0);
+		glBindTexture(GL_TEXTURE_2D, cube_diffuse_map);
+		glActiveTexture(GL_TEXTURE1);
+		wsShaderSetInt(shader_active, "texture_specular", 1);
+		glBindTexture(GL_TEXTURE_2D, cube_specular_map);
+		
+		// Draw cube.
 		glBindVertexArray(cube_vao);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
+}
+
+// Render lights.
+void wsGraphicsLightsRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_perspective, mat4 *matrix_ortho) {
+	// Set light variables.
+	for(unsigned int i = 0; i < WS_MAX_POINTLIGHTS; i++) {
+		srand(i);
+		float seedval =  ((rand() % 8) - 4) * 0.4f;
+		float x = pointlight_positions[i][0] + sin(glfwGetTime() * seedval) * 0.3f;
+		float y = pointlight_positions[i][1] + cos(glfwGetTime() * seedval) * 0.3f;
+		float z = pointlight_positions[i][2] - sin(glfwGetTime() * seedval + 0.25f) * 0.3f;
+		wsLightSetPositionp(i, (vec3){x, y, z});
+	}
+	
+	// Flashlight.
+	wsLightSetPositionf(0, cameras.position[camera_active]);
+	wsLightSetRotationf(0, cameras.rotation[camera_active]);
+	
+	// Directional Light.
+	float color_interp = (sin(glfwGetTime()) * 0.25f) + 1.75f;
+	wsLightInterpColord(0, (vec3){1.0f, 0.4f, 0.0f}, (vec3){0.85f, 0.6f, 0.0f}, color_interp);
+	
+	static bool pointlight_toggle = true;
+	if(wsInputGetPressOnce(GLFW_KEY_1)) {
+		pointlight_toggle = !pointlight_toggle;
+		for(unsigned int i = 0; i < WS_MAX_POINTLIGHTS; i++)
+			wsLightTogglep(i, pointlight_toggle);
+		if(wsLightGetTogglep(0))
+			printf("Turning on pointlights...\n");
+		else printf("Turning off pointlights...\n");
+	}
+	for(unsigned int i = 0; i < WS_MAX_POINTLIGHTS; i++) {
+		if(pointlight_toggle) {
+			float light_toggle = fabs(sin(glfwGetTime() + (i * 0.775f)));
+			wsLightTogglep(i, light_toggle > 0.975f ? true : false);
+		}
+	}
+	
+	static bool flashlight_toggle = false;
+	if(wsInputGetPressOnce(GLFW_KEY_2)) {
+		flashlight_toggle = !flashlight_toggle;
+		wsLightTogglef(0, flashlight_toggle);
+		if(wsLightGetTogglef(0))
+			printf("Turning on spotlights...\n");
+		else printf("Turning off spotlights...\n");
+	}
+	
+	static bool directionlight_toggle = false;
+	if(wsInputGetPressOnce(GLFW_KEY_3)) {
+		directionlight_toggle = !directionlight_toggle;
+		wsLightToggled(0, directionlight_toggle);
+		if(wsLightGetToggled(0))
+			printf("Turning on directionlights...\n");
+		else printf("Turning off directionlights...\n");
+	}
 	
 	// Draw pointlight cubes.
-	static bool pointlight_toggle = true;
 	for(unsigned int i = 0; i < WS_MAX_POINTLIGHTS; i++) {
 		glm_mat4_identity(*matrix_model);
 		glm_translate(*matrix_model, pointlights.position[i]);
@@ -212,53 +279,8 @@ void wsGraphicsWorldRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_p
 		wsShaderSetInt(light_shader, "toggle", (int)pointlights.toggle[i]);
 		wsShaderSetMVP(light_shader, matrix_model, matrix_view, matrix_perspective);
 		
-		if(pointlight_toggle) {
-			float light_toggle = fabs(sin(glfwGetTime() + (i * 0.775f)));
-			wsLightTogglep(i, light_toggle > 0.975f ? true : false);
-			// wsLightSetColorp(i, (vec3){fabs(sin(glfwGetTime())), fabs(sin(glfwGetTime() * i * 2)), fabs(sin(glfwGetTime() * i * 4))});
-		}
-		
 		glBindVertexArray(light_vao);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-	}
-	
-	vec3 firefly_positions[WS_MAX_POINTLIGHTS];
-	glm_vec3_add(pointlight_positions[0], (vec3){sin(glfwGetTime()), cos(glfwGetTime()), sin(glfwGetTime())}, firefly_positions[0]);
-	glm_vec3_add(pointlight_positions[1], (vec3){cos(glfwGetTime()), sin(glfwGetTime()), cos(glfwGetTime())}, firefly_positions[1]);
-	glm_vec3_add(pointlight_positions[2], (vec3){cos(glfwGetTime()), sin(glfwGetTime()), sin(glfwGetTime())}, firefly_positions[2]);
-	glm_vec3_add(pointlight_positions[3], (vec3){cos(glfwGetTime()), cos(glfwGetTime()), sin(glfwGetTime())}, firefly_positions[3]);
-	wsLightSetPositionp(0, firefly_positions[0]);
-	wsLightSetPositionp(1, firefly_positions[1]);
-	wsLightSetPositionp(2, firefly_positions[2]);
-	wsLightSetPositionp(3, firefly_positions[3]);
-	wsLightSetPositionf(0, cameras.position[camera_active]);
-	wsLightSetRotationf(0, cameras.rotation[camera_active]);
-	
-	if(wsInputGetPressOnce(GLFW_KEY_G)) {
-		pointlight_toggle = !pointlight_toggle;
-		for(unsigned int i = 0; i < WS_MAX_POINTLIGHTS; i++)
-			wsLightTogglep(i, pointlight_toggle);
-		if(wsLightGetTogglep(0))
-			printf("Turning on pointlights...\n");
-		else printf("Turning off pointlights...\n");
-	}
-	
-	static bool flashlight_toggle = false;
-	if(wsInputGetPressOnce(GLFW_KEY_F)) {
-		flashlight_toggle = !flashlight_toggle;
-		wsLightTogglef(0, flashlight_toggle);
-		if(wsLightGetTogglef(0))
-			printf("Turning on spotlights...\n");
-		else printf("Turning off spotlights...\n");
-	}
-	
-	static bool directionlight_toggle = false;
-	if(wsInputGetPressOnce(GLFW_KEY_H)) {
-		directionlight_toggle = !directionlight_toggle;
-		wsLightToggled(0, directionlight_toggle);
-		if(wsLightGetToggled(0))
-			printf("Turning on directionlights...\n");
-		else printf("Turning off directionlights...\n");
 	}
 }
 
@@ -274,13 +296,13 @@ void wsGraphicsUIRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_pers
 	}
 	
 	// UI labels.
-	wsTextRender(text_shader, "The quick brown fox jumps over the lazy dog!", (vec2){window_width - 1010.0f, window_height - 50.0f}, 0.35f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
+	wsTextRender(text_shader, "The quick brown fox jumps over the lazy dog!", (vec2){910.0f, 1030.0f}, 0.35f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
 	
 	wsTextRender(text_shader, "[W][A][S][D] for z/x-axis", (vec2){10.0f, 1050.0f}, 0.2f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
 	wsTextRender(text_shader, "[CTRL][SPACE] for y-axis", (vec2){10.0f, 1025.0f}, 0.2f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
-	wsTextRender(text_shader, "[F] to toggle spot lights", (vec2){10.0f, 1000.0f}, 0.2f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
-	wsTextRender(text_shader, "[G] to toggle point lights", (vec2){10.0f, 975.0f}, 0.2f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
-	wsTextRender(text_shader, "[H] to toggle directional lights", (vec2){10.0f, 950.0f}, 0.2f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
+	wsTextRender(text_shader, "[R] to toggle red component", (vec2){10.0f, 1000.0f}, 0.2f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
+	wsTextRender(text_shader, "[G] to toggle blue component", (vec2){10.0f, 975.0f}, 0.2f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
+	wsTextRender(text_shader, "[B] to toggle green component", (vec2){10.0f, 950.0f}, 0.2f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
 	wsTextRender(text_shader, "kade samson", (vec2){10.0f, 20.0f}, 0.1f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
 	wsTextRender(text_shader, "version 66642069", (vec2){10.0f, 10.0f}, 0.1f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
 }
@@ -288,7 +310,7 @@ void wsGraphicsUIRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_pers
 void wsGraphicsTerminate() {
 	wsModelTerminate(&cube_model);
 	wsTextTerminate();
-	wsDeferredRendererTerminate();
+	wsDefRenTerminate();
 	
 	glDeleteVertexArrays(1, &cube_vao);
 	glDeleteVertexArrays(1, &light_vao);

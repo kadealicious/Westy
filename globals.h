@@ -18,12 +18,14 @@ extern const vec3 WS_WORLD_FORWARD;
 
 extern int window_width;
 extern int window_height;
+extern int screen_width;
+extern int screen_height;
 extern unsigned int target_fps;
 extern float delta_time;
 
-float wsInterpF(float start, float target, float damp);
-double wsInterpD(double start, double target, float damp);
-int wsInterpI(int start, int target, float damp);
+float wsInterpf(float num0, float num1, float interp);
+double wsInterpd(double num0, double num1, float interp);
+int wsInterpi(int num0, int num1, float interp);
 
 float wsGetAspectRatio();
 

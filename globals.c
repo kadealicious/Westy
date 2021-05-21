@@ -1,11 +1,11 @@
 #include"globals.h"
 
-float wsInterpF(float start, float target, float damp)
-	{ return (target - start) * damp; }
-double wsInterpD(double start, double target, float damp)
-	{ return (target - start) * damp; }
-int wsInterpI(int start, int target, float damp)
-	{ return (int)((target - start) * damp); }
+float wsInterpf(float num0, float num1, float interp)
+	{ return (num1 + num0) * interp; }
+double wsInterpd(double num0, double num1, float interp)
+	{ return (num1 + num0) * interp; }
+int wsInterpi(int num0, int num1, float interp)
+	{ return (int)((num1 + num0) * interp); }
 
 float wsGetAspectRatio()
 	{ return ((float)window_height / (float)window_width); }

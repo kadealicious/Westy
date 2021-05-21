@@ -5,7 +5,6 @@ void wsCameraInit(unsigned int cameraID, vec3 position, vec3 rotation, float fov
 void wsCameraSyncRotation(unsigned int cameraID);
 void wsCameraGenViewMatrix(unsigned int cameraID, mat4 *view_dest);
 void wsCameraFPSMove(unsigned int cameraID, vec3 move_array, float speed);
-void wsCameraFPSMove(unsigned int cameraID, vec3 move_array, float speed);
 void wsCameraMouseMove(unsigned int cameraID, float offsetx, float offsety, float pitch_constraint);
 void wsCameraMouseMoveDamp(unsigned int cameraID, float offsetx, float offsety, float pitch_constraint, float damp);
 
@@ -82,8 +81,8 @@ void wsCameraMouseMoveDamp(unsigned int cameraID, float offsetx, float offsety, 
 	cameras.euler[cameraID][YAW] += offsetx;
 	cameras.euler[cameraID][PITCH] += offsety;
 	
-	cameras.euler_interp[YAW] += wsInterpF(cameras.euler_interp[YAW], cameras.euler[cameraID][YAW], damp);
-	cameras.euler_interp[PITCH] += wsInterpF(cameras.euler_interp[PITCH], cameras.euler[cameraID][PITCH], damp);
+	cameras.euler_interp[YAW] += wsInterpf(cameras.euler_interp[YAW], cameras.euler[cameraID][YAW], damp);
+	cameras.euler_interp[PITCH] += wsInterpf(cameras.euler_interp[PITCH], cameras.euler[cameraID][PITCH], damp);
 	
 	if(cameras.euler[cameraID][PITCH] > pitch_constraint)
 		cameras.euler[cameraID][PITCH] = pitch_constraint;
@@ -141,4 +140,5 @@ void wsCameraMakeFPS(unsigned int cameraID, mat4 *view_dest, float speed, float 
 	
 	wsCameraFPSMove(cameraID, move_array, speed);
 	wsCameraMouseMove(cameraID, wsInputGetMouseMoveX() / 3.0, wsInputGetMouseMoveY() / 3.0, pitch_constraint);
+	wsCameraGenViewMatrix(cameraID, view_dest);
 }

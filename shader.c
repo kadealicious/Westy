@@ -86,7 +86,10 @@ unsigned int wsShaderLoad(const char *path_vert, const char *path_frag, bool use
 	
 	return shader_program;
 }
+
 void wsShaderUse(unsigned int shaderID) { glUseProgram(shaderID); }
+unsigned int wsShaderGetActive() { GLint prog; glGetIntegerv(GL_CURRENT_PROGRAM, &prog); return prog; }
+
 void wsShaderSetBool(unsigned int shaderID, const char *var_name, bool value)
 	{ glProgramUniform1i(shaderID, glGetUniformLocation(shaderID, var_name), (int)value); }
 void wsShaderSetInt(unsigned int shaderID, const char *var_name, int value)
@@ -105,7 +108,7 @@ void wsShaderSetMat4(unsigned int shaderID, const char *var_name, mat4 *mat)
 	{ glProgramUniformMatrix4fv(shaderID, glGetUniformLocation(shaderID, var_name), 1, GL_FALSE, mat[0][0]); }
 
 void wsShaderUpdateCamera(unsigned int shaderID, unsigned int cameraID)
-	{ wsShaderSetVec3(shaderID, "view_position", cameras.position[cameraID]); }
+	{ wsShaderSetVec3(shaderID, "view_pos", cameras.position[cameraID]); }
 void wsShaderSetMVP(unsigned int shaderID, mat4 *model, mat4 *view, mat4 *projection) {
 	wsShaderSetMat4(shaderID, "model", model);
 	wsShaderSetMat4(shaderID, "view", view);
@@ -120,14 +123,6 @@ void wsShaderSetNormalMatrix(unsigned int shaderID, mat4 *model) {
 	wsShaderSetMat3(shaderID, "normal_matrix", &normal3);	
 }
 
-void wsShaderUpdateLights(unsigned int shaderID, unsigned int num_pointlights, unsigned int num_spotlights, unsigned int num_directionlights) {
-	for(unsigned int i = 0; i < num_pointlights; i++)
-		wsShaderUpdateLightp(shaderID, i);
-	for(unsigned int i = 0; i < num_spotlights; i++)
-		wsShaderUpdateLightf(shaderID, i);
-	for(unsigned int i = 0; i < num_directionlights; i++)
-		wsShaderUpdateLightd(shaderID, i);
-}
 void wsShaderUpdateLightp(unsigned int shaderID, unsigned int lightID) {
 	char uniform_str[35];
 	sprintf(uniform_str, "pointlights.toggle[%d]", lightID);
@@ -138,16 +133,10 @@ void wsShaderUpdateLightp(unsigned int shaderID, unsigned int lightID) {
 		
 		sprintf(uniform_str, "pointlights.position[%d]", lightID);
 		wsShaderSetVec3(shaderID, uniform_str, pointlights.position[lightID]);
-		
-		sprintf(uniform_str, "pointlights.ambient[%d]", lightID);
-		wsShaderSetVec3(shaderID, uniform_str, pointlights.ambient[lightID]);
-		sprintf(uniform_str, "pointlights.diffuse[%d]", lightID);
-		wsShaderSetVec3(shaderID, uniform_str, pointlights.diffuse[lightID]);
-		sprintf(uniform_str, "pointlights.specular[%d]", lightID);
-		wsShaderSetVec3(shaderID, uniform_str, pointlights.specular[lightID]);
-		
-		sprintf(uniform_str, "pointlights.constant[%d]", lightID);
-		wsShaderSetFloat(shaderID, uniform_str, pointlights.constant[lightID]);
+		sprintf(uniform_str, "pointlights.color[%d]", lightID);
+		wsShaderSetVec3(shaderID, uniform_str, pointlights.color[lightID]);
+		sprintf(uniform_str, "pointlights.intensity[%d]", lightID);
+		wsShaderSetFloat(shaderID, uniform_str, pointlights.intensity[lightID]);
 		sprintf(uniform_str, "pointlights.linear[%d]", lightID);
 		wsShaderSetFloat(shaderID, uniform_str, pointlights.linear[lightID]);
 		sprintf(uniform_str, "pointlights.quadratic[%d]", lightID);
@@ -164,25 +153,18 @@ void wsShaderUpdateLightf(unsigned int shaderID, unsigned int lightID) {
 		wsShaderSetVec3(shaderID,  uniform_str, spotlights.position[lightID]);
 		sprintf(uniform_str, "spotlights.rotation[%d]", lightID);
 		wsShaderSetVec3(shaderID, uniform_str, spotlights.rotation[lightID]);
-		
-		sprintf(uniform_str, "spotlights.cutoff[%d]", lightID);
-		wsShaderSetFloat(shaderID, uniform_str, spotlights.cutoff[lightID]);
-		sprintf(uniform_str, "spotlights.outer_cutoff[%d]", lightID);
-		wsShaderSetFloat(shaderID, uniform_str, spotlights.outer_cutoff[lightID]);
-		
-		sprintf(uniform_str, "spotlights.ambient[%d]", lightID);
-		wsShaderSetVec3(shaderID, uniform_str, spotlights.ambient[lightID]);
-		sprintf(uniform_str, "spotlights.diffuse[%d]", lightID);
-		wsShaderSetVec3(shaderID, uniform_str, spotlights.diffuse[lightID]);
-		sprintf(uniform_str, "spotlights.specular[%d]", lightID);
-		wsShaderSetVec3(shaderID, uniform_str, spotlights.specular[lightID]);
-		
-		sprintf(uniform_str, "spotlights.constant[%d]", lightID);
-		wsShaderSetFloat(shaderID, uniform_str, spotlights.constant[lightID]);
+		sprintf(uniform_str, "spotlights.color[%d]", lightID);
+		wsShaderSetVec3(shaderID, uniform_str, spotlights.color[lightID]);
+		sprintf(uniform_str, "spotlights.intensity[%d]", lightID);
+		wsShaderSetFloat(shaderID, uniform_str, spotlights.intensity[lightID]);
 		sprintf(uniform_str, "spotlights.linear[%d]", lightID);
 		wsShaderSetFloat(shaderID, uniform_str, spotlights.linear[lightID]);
 		sprintf(uniform_str, "spotlights.quadratic[%d]", lightID);
 		wsShaderSetFloat(shaderID, uniform_str, spotlights.quadratic[lightID]);
+		sprintf(uniform_str, "spotlights.cutoff[%d]", lightID);
+		wsShaderSetFloat(shaderID, uniform_str, spotlights.cutoff[lightID]);
+		sprintf(uniform_str, "spotlights.outer_cutoff[%d]", lightID);
+		wsShaderSetFloat(shaderID, uniform_str, spotlights.outer_cutoff[lightID]);
 	}
 }
 void wsShaderUpdateLightd(unsigned int shaderID, unsigned int lightID) {
@@ -193,12 +175,9 @@ void wsShaderUpdateLightd(unsigned int shaderID, unsigned int lightID) {
 	if(directionlights.toggle[lightID]) {
 		sprintf(uniform_str, "directionlights.rotation[%d]", lightID);
 		wsShaderSetVec3(shaderID, uniform_str, directionlights.rotation[lightID]);
-		
-		sprintf(uniform_str, "directionlights.ambient[%d]", lightID);
-		wsShaderSetVec3(shaderID, uniform_str, directionlights.ambient[lightID]);
-		sprintf(uniform_str, "directionlights.diffuse[%d]", lightID);
-		wsShaderSetVec3(shaderID, uniform_str, directionlights.diffuse[lightID]);
-		sprintf(uniform_str, "directionlights.specular[%d]", lightID);
-		wsShaderSetVec3(shaderID, uniform_str, directionlights.specular[lightID]);
+		sprintf(uniform_str, "directionlights.color[%d]", lightID);
+		wsShaderSetVec3(shaderID, uniform_str, directionlights.color[lightID]);
+		sprintf(uniform_str, "directionlights.intensity[%d]", lightID);
+		wsShaderSetFloat(shaderID, uniform_str, directionlights.intensity[lightID]);
 	}
 }

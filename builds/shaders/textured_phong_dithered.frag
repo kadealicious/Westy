@@ -1,6 +1,6 @@
 #version 460 core
 
-#define MAX_POINTLIGHTS 4
+#define MAX_POINTLIGHTS 50
 #define MAX_SPOTLIGHTS 1
 #define MAX_DIRECTIONLIGHTS 1
 

@@ -14,7 +14,7 @@ typedef struct Char {
 // Initialize text renderer.
 void wsTextInit();
 // Load font face.
-bool wsTextLoadFace(const char *face_path, unsigned int face_size, unsigned int gl_texture_unit);
+bool wsTextLoadFace(const char *face_path, unsigned int face_size);
 // Render text in 2d screenspace.
 void wsTextRender(unsigned int shaderID, const char* text, vec2 position, float scale, vec3 color, mat4 *matrix_ortho);
 // Render billboard text in 3d worldspace.
