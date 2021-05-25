@@ -175,11 +175,6 @@ void wsTextRender(unsigned int shaderID, const char* text, vec2 position, float 
 
 // Render billboard text in 3d worldspace.
 void wsTextBillboardRender(unsigned int shaderID, const char* text, vec3 position, float scale, vec3 color, unsigned int cameraID, mat4 *matrix_view, mat4 *matrix_perspective) {
-	// Scale all parameters to be consistent across different screen resolutions.
-	float yscale = screen_height / 1080;
-	glm_vec3_scale(position, yscale, position);
-	scale *= yscale;
-	
 	// Calculate end width + height for centering.
 	float half_width = 0.0f;
 	for(unsigned int i = 0; i < strlen(text); i++) {

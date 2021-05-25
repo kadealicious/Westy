@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-std=c99 -Wall
 LIB=-lmingw32 -lglfw3dll -lopengl32 -lfreetype6
 DEPS=globals.h graphics.h deferredrenderer.h shader.h input.h camera.h model.h material.h light.h text.h
-OBJ=main.o globals.o graphics.o deferredrenderer.o shader.o input.o camera.o model.o material.o light.o text.o glew.o
+OBJ=globals.o main.o graphics.o deferredrenderer.o shader.o input.o camera.o model.o material.o light.o text.o glew.o
 
 all: app
 

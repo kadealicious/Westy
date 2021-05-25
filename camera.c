@@ -24,7 +24,13 @@ void wsCameraInit(unsigned int cameraID, vec3 position, vec3 rotation, float fov
 		cameras.fov[cameraID]);
 }
 
-// Update camera forward, up, and right vectors.  Only used internally.
+void wsCameraGenViewMatrix(unsigned int cameraID, mat4 *view_dest) {
+	vec3 lookat;
+	glm_vec3_add(cameras.position[cameraID], cameras.rotation[cameraID], lookat);
+	glm_lookat(cameras.position[cameraID], lookat, cameras.up[cameraID], *view_dest);
+}
+
+// Update camera forward, up, and right vectors according to euler vector.  Only used internally.
 void wsCameraSyncRotation(unsigned int cameraID) {
 	cameras.rotation[cameraID][0]	= cos(glm_rad(cameras.euler[cameraID][YAW])) * cos(glm_rad(cameras.euler[cameraID][PITCH]));
 	cameras.rotation[cameraID][1]	= sin(glm_rad(cameras.euler[cameraID][PITCH]));
@@ -40,7 +46,7 @@ void wsCameraSyncRotation(unsigned int cameraID) {
 	glm_vec3_cross(cameras.rotation[cameraID], cameras.up[cameraID], cameras.right[cameraID]);
 	glm_normalize(cameras.right[cameraID]);
 }
-
+// Update camera forward, up, and right vectors according to euler vector.  Only used internally.
 void wsCameraSyncRotationDamped(unsigned int cameraID) {
 	cameras.rotation[cameraID][0]	= cos(glm_rad(cameras.euler_interp[YAW])) * cos(glm_rad(cameras.euler_interp[PITCH]));
 	cameras.rotation[cameraID][1]	= sin(glm_rad(cameras.euler_interp[PITCH]));
@@ -56,13 +62,6 @@ void wsCameraSyncRotationDamped(unsigned int cameraID) {
 	glm_vec3_cross(cameras.rotation[cameraID], cameras.up[cameraID], cameras.right[cameraID]);
 	glm_normalize(cameras.right[cameraID]);
 }
-
-void wsCameraGenViewMatrix(unsigned int cameraID, mat4 *view_dest) {
-	vec3 lookat;
-	glm_vec3_add(cameras.position[cameraID], cameras.rotation[cameraID], lookat);
-	glm_lookat(cameras.position[cameraID], lookat, cameras.up[cameraID], *view_dest);
-}
-
 void wsCameraMouseMove(unsigned int cameraID, float offsetx, float offsety, float pitch_constraint) {
 	cameras.euler[cameraID][YAW] += offsetx;
 	cameras.euler[cameraID][PITCH] += offsety;
@@ -74,7 +73,6 @@ void wsCameraMouseMove(unsigned int cameraID, float offsetx, float offsety, floa
 	
 	wsCameraSyncRotation(cameraID);
 }
-
 void wsCameraMouseMoveDamp(unsigned int cameraID, float offsetx, float offsety, float pitch_constraint, float damp) {
 	damp *= delta_time;
 	
@@ -83,6 +81,7 @@ void wsCameraMouseMoveDamp(unsigned int cameraID, float offsetx, float offsety, 
 	
 	cameras.euler_interp[YAW] += wsInterpf(cameras.euler_interp[YAW], cameras.euler[cameraID][YAW], damp);
 	cameras.euler_interp[PITCH] += wsInterpf(cameras.euler_interp[PITCH], cameras.euler[cameraID][PITCH], damp);
+	// cameras.euler_interp[ROLL] = (cameras.euler[cameraID][YAW] - cameras.euler_interp[YAW]) * 0.85f;
 	
 	if(cameras.euler[cameraID][PITCH] > pitch_constraint)
 		cameras.euler[cameraID][PITCH] = pitch_constraint;
@@ -139,6 +138,6 @@ void wsCameraMakeFPS(unsigned int cameraID, mat4 *view_dest, float speed, float 
 		glm_vec3_scale(move_array, 10.0f, move_array);
 	
 	wsCameraFPSMove(cameraID, move_array, speed);
-	wsCameraMouseMove(cameraID, wsInputGetMouseMoveX() / 3.0, wsInputGetMouseMoveY() / 3.0, pitch_constraint);
+	wsCameraMouseMoveDamp(cameraID, wsInputGetMouseMoveX() / 3.0, wsInputGetMouseMoveY() / 3.0, pitch_constraint, 10.0f);
 	wsCameraGenViewMatrix(cameraID, view_dest);
 }

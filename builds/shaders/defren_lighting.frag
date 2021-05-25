@@ -191,12 +191,10 @@ float BayerFindClosest(int x, int y, float col) {
 		{63, 31, 55, 23, 61, 29, 53, 21}
 	};
 	
-	float limit = 0.0;
-	if(x < 8)
-		limit = (dither[x][y] + 1) / 64.0f;
+	float limit = (dither[x][y] + 1) / 64.0f;
 	if(col < limit)
-		return 0.0f;
-	return 1.0f;
+		return 0.0;
+	return 1.0;
 }
 
 /*// SSAO.

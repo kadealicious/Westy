@@ -181,3 +181,8 @@ void wsShaderUpdateLightd(unsigned int shaderID, unsigned int lightID) {
 		wsShaderSetFloat(shaderID, uniform_str, directionlights.intensity[lightID]);
 	}
 }
+
+void wsShaderDelete(unsigned int *shaderID) {
+	glDeleteProgram(*shaderID);
+	*shaderID = WS_SHADER_NONE;
+}

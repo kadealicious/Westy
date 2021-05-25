@@ -70,25 +70,25 @@ void wsLightSetColorf(unsigned int lightID, vec3 color) { glm_vec3_copy(color, s
 void wsLightSetColord(unsigned int lightID, vec3 color) { glm_vec3_copy(color, directionlights.color[lightID]); }
 void wsLightInterpColorp(unsigned int lightID, vec3 color0, vec3 color1, float interp) {
 	vec3 new_color = {
-		wsInterpf(color0[0], color1[0], interp), 
-		wsInterpf(color0[1], color1[1], interp), 
-		wsInterpf(color0[2], color1[2], interp), 
+		wsAddDampf(color0[0], color1[0], interp), 
+		wsAddDampf(color0[1], color1[1], interp), 
+		wsAddDampf(color0[2], color1[2], interp)
 	};
 	wsLightSetColorp(lightID, new_color);
 }
 void wsLightInterpColorf(unsigned int lightID, vec3 color0, vec3 color1, float interp) {
 	vec3 new_color = {
-		wsInterpf(color0[0], color1[0], interp), 
-		wsInterpf(color0[1], color1[1], interp), 
-		wsInterpf(color0[2], color1[2], interp), 
+		wsAddDampf(color0[0], color1[0], interp), 
+		wsAddDampf(color0[1], color1[1], interp), 
+		wsAddDampf(color0[2], color1[2], interp)
 	};
 	wsLightSetColorf(lightID, new_color);
 }
 void wsLightInterpColord(unsigned int lightID, vec3 color0, vec3 color1, float interp) {
 	vec3 new_color = {
-		wsInterpf(color0[0], color1[0], interp), 
-		wsInterpf(color0[1], color1[1], interp), 
-		wsInterpf(color0[2], color1[2], interp), 
+		wsAddDampf(color0[0], color1[0], interp), 
+		wsAddDampf(color0[1], color1[1], interp), 
+		wsAddDampf(color0[2], color1[2], interp)
 	};
 	wsLightSetColord(lightID, new_color);
 }

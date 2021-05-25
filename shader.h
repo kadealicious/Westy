@@ -7,12 +7,18 @@
 #include"camera.h"
 #include"light.h"
 
+enum WS_SHADER_STATES { WS_SHADER_NONE = -1, WS_SHADER_ERROR = 1 };
+
 // Load shader.
 unsigned int wsShaderLoad(const char *path_vert, const char *path_frag, bool use_on_load, bool print_on_load);
 // Use shader.
 void wsShaderUse(unsigned int shaderID);
 // Get active shader.
 unsigned int wsShaderGetActive();
+// Used for resetting shader variables to -1 (WS_SHADER_NONE).
+void wsShaderDelete(unsigned int *shaderID);
+
+
 // Set shader bool.
 void wsShaderSetBool(unsigned int shaderID, const char *var_name, bool value);
 // Set shader int.

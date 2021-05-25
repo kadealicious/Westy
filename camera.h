@@ -34,7 +34,6 @@ struct wsCameras cameras;
 
 void wsCameraInit(unsigned int cameraID, vec3 position, vec3 rotation, float fov);
 
-void wsCameraSyncRotation(unsigned int cameraID);
 void wsCameraGenViewMatrix(unsigned int cameraID, mat4 *view_dest);
 void wsCameraMakeFPS(unsigned int cameraID, mat4 *view_dest, float speed, float pitch_constraint);
 void wsCameraFPSMove(unsigned int cameraID, vec3 move_array, float speed);

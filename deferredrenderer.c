@@ -11,7 +11,7 @@
 	r_depth:		per-pixel depth data.  Stored in a render buffer. */
 unsigned int g_buffer, g_position, g_normal, g_albedospec, r_depth;
 // Shader for g-buffer quad.
-unsigned int geometry_shader, lighting_shader;
+unsigned int geometry_shader = WS_SHADER_NONE, lighting_shader = WS_SHADER_NONE;
 
 void wsDefRenRenderQuad();
 
@@ -60,8 +60,8 @@ void wsDefRenInit() {
 		printf("WARNING - Framebuffer incomplete!\n");
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
-	geometry_shader = wsShaderLoad("shaders/gbuffer.vert", "shaders/gbuffer.frag", false, false);
-	lighting_shader = wsShaderLoad("shaders/defren.vert", "shaders/defren.frag", false, false);
+	if(geometry_shader == WS_SHADER_NONE)	geometry_shader = wsShaderLoad("shaders/defren_geometry.vert", "shaders/defren_geometry.frag", false, false);
+	if(lighting_shader == WS_SHADER_NONE)	lighting_shader = wsShaderLoad("shaders/defren_lighting.vert", "shaders/defren_lighting.frag", false, false);
 	
 	wsShaderSetInt(lighting_shader, "g_position", 0);
 	wsShaderSetInt(lighting_shader, "g_normal", 1);
@@ -73,6 +73,7 @@ void wsDefRenInit() {
 // Perform geometry pass using g-buffer.
 void wsDefRenGeometryPass(mat4 *model, mat4 *view, mat4 *projection, unsigned int cameraID) {
 	glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	wsShaderUse(geometry_shader);
@@ -139,64 +140,20 @@ void wsDefRenRenderQuad()
     glBindVertexArray(0);
 }
 
-// For when we resize the window.
-void wsDefRenResize() {
-	// Start with a clean slate.
-	/*wsDefRenTerminate();
-	
-	// Create and bind g-buffer.
-	glGenFramebuffers(1, &g_buffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
-	
-	// Create and bind position buffer as GL_TEXTURE_2D.
-	glGenTextures(1, &g_position);
-	glBindTexture(GL_TEXTURE_2D, g_position);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, screen_width, screen_height, 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_position, 0);
-	
-	// Create and bind normal buffer as GL_TEXTURE_2D.
-	glGenTextures(1, &g_normal);
-	glBindTexture(GL_TEXTURE_2D, g_normal);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, screen_width, screen_height, 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, g_normal, 0);
-	
-	// Create and bind color/shading buffer as GL_TEXTURE_2D.
-	glGenTextures(1, &g_albedospec);
-	glBindTexture(GL_TEXTURE_2D, g_albedospec);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screen_width, screen_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, g_albedospec, 0);
-	
-	// Create array of attachments and draw them.
-	unsigned int attachments[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
-	glDrawBuffers(3, &attachments[0]);
-	
-	// Finally, create and attach depth buffer.
-	glGenRenderbuffers(1, &r_depth);
-	glBindRenderbuffer(GL_RENDERBUFFER, r_depth);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, screen_width, screen_height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, r_depth);
-	
-	// Check if framebuffer is complete, then unbind framebuffer.
-	if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		printf("WARNING - Framebuffer incomplete!\n");
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	
-	printf("Deferred Renderer resize success\n");*/
-}
-
 // Destroy buffers.  Don't forget to call this!!
 void wsDefRenTerminate() {
-	glDeleteBuffers(1, &g_buffer);
-	glDeleteBuffers(1, &g_position);
-	glDeleteBuffers(1, &g_normal);
-	glDeleteBuffers(1, &g_albedospec);
-	glDeleteBuffers(1, &r_depth);
+	glBindBuffer(GL_FRAMEBUFFER, 0);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	glDeleteFramebuffers(1, &g_buffer);
+	glDeleteTextures(1, &g_position);
+	glDeleteTextures(1, &g_normal);
+	glDeleteTextures(1, &g_albedospec);
+	glDeleteRenderbuffers(1, &r_depth);
+	
+	wsShaderDelete(&geometry_shader);
+	wsShaderDelete(&lighting_shader);
 	
 	printf("Deferred Renderer terminated\n");
 }

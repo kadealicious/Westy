@@ -1,11 +1,22 @@
 #include"globals.h"
 
-float wsInterpf(float num0, float num1, float interp)
-	{ return (num1 + num0) * interp; }
-double wsInterpd(double num0, double num1, float interp)
-	{ return (num1 + num0) * interp; }
-int wsInterpi(int num0, int num1, float interp)
-	{ return (int)((num1 + num0) * interp); }
+const vec3 WS_WORLD_UP		= {0.0f, 1.0f, 0.0f};
+const vec3 WS_WORLD_RIGHT	= {1.0f, 0.0f, 0.0f};
+const vec3 WS_WORLD_FORWARD	= {0.0f, 0.0f, 1.0f};
+
+int window_width	= 640;
+int window_height	= 480;
+int screen_width	= 640;
+int screen_height	= 480;
+unsigned int target_fps = 60;
+float delta_time = 1.0f;
+
+float wsInterpf(float num0, float num1, float interp)		{ return (num1 - num0) * interp; }
+double wsInterpd(double num0, double num1, float interp)	{ return (num1 - num0) * interp; }
+int wsInterpi(int num0, int num1, float interp)				{ return (int)((num1 - num0) * interp); }
+float wsAddDampf(float num0, float num1, float interp)		{ return (num0 + num1) * interp; }
+double wsAddDampd(double num0, double num1, float interp)	{ return (num0 + num1) * interp; }
+int wsAddDampi(int num0, int num1, float interp)			{ return (int)((num0 + num1) * interp); }
 
 float wsGetAspectRatio()
 	{ return ((float)window_height / (float)window_width); }

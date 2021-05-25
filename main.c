@@ -4,27 +4,13 @@
 
 #include"globals.h"
 #include"graphics.h"
-#include"deferredrenderer.h"
 #include"input.h"
 
-// Declare globals from globals.h
-const vec3 WS_WORLD_UP		= {0.0f, 1.0f, 0.0f};
-const vec3 WS_WORLD_RIGHT	= {1.0f, 0.0f, 0.0f};
-const vec3 WS_WORLD_FORWARD	= {0.0f, 0.0f, 1.0f};
-
+// "Local" variables.
 int monitor_width;
 int monitor_height;
 int win_posx;
 int win_posy;
-int window_width	= 640;
-int window_height	= 480;
-int screen_width	= 640;
-int screen_height	= 480;
-unsigned int target_fps = 60;
-float delta_time = 1.0f;
-
-// "Local" variables.
-FILE *console_log;
 
 GLFWwindow *window;
 GLFWmonitor *monitor_primary;
@@ -41,8 +27,6 @@ void wsMonitorCallback(GLFWmonitor *monitor, int ev);
 void wsFrameBufferSizeCallback(GLFWwindow *window, int width, int height);
 
 int main(int argc, char **argv) {
-	// console_log = freopen("consolelog.txt", "w", stdout);
-	
 	printf(" --- BEGIN --- \n\n");
 	
 	// OG code
@@ -52,7 +36,6 @@ int main(int argc, char **argv) {
 	state = wsQuit(state);
 	
 	printf("\n --- END --- \n");
-	// fclose(console_log);
 	return state;
 }
 
@@ -99,7 +82,7 @@ bool wsInitGLFW() {
 	
 	// int monitor_count;
 	// GLFWmonitor **monitors		= glfwGetMonitors(&monitor_count);
-	monitor_primary				= glfwGetPrimaryMonitor();
+	monitor_primary = glfwGetPrimaryMonitor();
 	glfwSetMonitorCallback(wsMonitorCallback);
 	
 	// int video_mode_count;
@@ -170,17 +153,9 @@ int wsRun() {
 			if(glfwGetWindowMonitor(window) == NULL) {
 				printf("Switching to fullscreen mode...\n");
 				glfwSetWindowMonitor(window, monitor_primary, 0, 0, monitor_width, monitor_height, target_fps);
-				screen_width = monitor_width;
-				screen_height = monitor_height;
-				
-				wsDefRenResize();
 			} else {
 				printf("Switching to windowed mode...\n");
 				glfwSetWindowMonitor(window, NULL, win_posx, win_posy, window_width, window_height, target_fps);
-				screen_width = window_width;
-				screen_height = window_height;
-				
-				wsDefRenResize();
 			}
 		}
 		
@@ -219,8 +194,12 @@ void wsMonitorCallback(GLFWmonitor *monitor, int ev) {
 	}
 }
 void wsFrameBufferSizeCallback(GLFWwindow *window, int width, int height) {
+	screen_width = width;
+	screen_height = height;
 	glViewport(0, 0, width, height);
-	printf("Frame buffer size changed to: %d x %d\n", width, height);
+	wsGraphicsResize();
+	
+	printf("Frame buffer size changed to: %d x %d\n", screen_width, screen_height);
 }
 
 int wsQuit(unsigned int app_state) {

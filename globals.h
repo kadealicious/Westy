@@ -23,9 +23,18 @@ extern int screen_height;
 extern unsigned int target_fps;
 extern float delta_time;
 
+// Will return a float from 0.0f-[range of num0 - num1].
 float wsInterpf(float num0, float num1, float interp);
+// Will return a double from 0.0-[range of num0 - num1].
 double wsInterpd(double num0, double num1, float interp);
+// Will return an int from 0-[range of num0 - num1].
 int wsInterpi(int num0, int num1, float interp);
+// Will return a float from 0.0f-[num0 + num1].
+float wsAddDampf(float num0, float num1, float interp);
+// Will return a double from 0.0-[num0 + num1].
+double wsAddDampd(double num0, double num1, float interp);
+// Will return an int from 0-[num0 + num1].
+int wsAddDampi(int num0, int num1, float interp);
 
 float wsGetAspectRatio();
 
