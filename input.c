@@ -15,12 +15,12 @@ void wsInputInit(GLFWwindow *window, float sensitivity) {
 	window = window;
     mouse_sensitivity = sensitivity;
 
-    printf("Input init success\n");
+    printf("Input initialized\n");
 }
 
-bool wsInputGetPress(int key)		{ return (glfwGetKey(window, key) == GLFW_PRESS); }
-bool wsInputGetPressOnce(int key)	{ return (glfwGetKeyOnce(window, key) == GLFW_PRESS); }
-bool wsInputGetRelease(int key)		{ return (glfwGetKey(window, key) == GLFW_RELEASE); }
+bool wsInputGetHold(int key)	{ return (glfwGetKey(window, key) == GLFW_PRESS); }
+bool wsInputGetPress(int key)	{ return (glfwGetKeyOnce(window, key) == GLFW_PRESS); }
+bool wsInputGetRelease(int key)	{ return (glfwGetKey(window, key) == GLFW_RELEASE); }
 
 float wsInputGetMousePosX()		{ return mouse_position[0]; }
 float wsInputGetMousePosY()		{ return mouse_position[1]; }

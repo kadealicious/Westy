@@ -11,7 +11,7 @@
 	r_depth:		per-pixel depth data.  Stored in a render buffer. */
 unsigned int g_buffer, g_position, g_normal, g_albedospec, r_depth;
 // Shader for g-buffer quad.
-unsigned int geometry_shader = WS_SHADER_NONE, lighting_shader = WS_SHADER_NONE;
+unsigned int geometry_shader = WS_NONE, lighting_shader = WS_NONE;
 
 void wsDefRenRenderQuad();
 
@@ -60,8 +60,8 @@ void wsDefRenInit() {
 		printf("WARNING - Framebuffer incomplete!\n");
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
-	if(geometry_shader == WS_SHADER_NONE)	geometry_shader = wsShaderLoad("shaders/defren_geometry.vert", "shaders/defren_geometry.frag", false, false);
-	if(lighting_shader == WS_SHADER_NONE)	lighting_shader = wsShaderLoad("shaders/defren_lighting.vert", "shaders/defren_lighting.frag", false, false);
+	if(geometry_shader == WS_NONE)	geometry_shader = wsShaderLoad("shaders/defren_geometry.vert", "shaders/defren_geometry.frag", false, false);
+	if(lighting_shader == WS_NONE)	lighting_shader = wsShaderLoad("shaders/defren_lighting.vert", "shaders/defren_lighting.frag", false, false);
 	
 	wsShaderSetInt(lighting_shader, "g_position", 0);
 	wsShaderSetInt(lighting_shader, "g_normal", 1);
@@ -73,7 +73,7 @@ void wsDefRenInit() {
 // Perform geometry pass using g-buffer.
 void wsDefRenGeometryPass(mat4 *model, mat4 *view, mat4 *projection, unsigned int cameraID) {
 	glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(1.0, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	wsShaderUse(geometry_shader);

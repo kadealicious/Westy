@@ -1,27 +1,31 @@
 #include"camera.h"
 #include"input.h"
 
-void wsCameraInit(unsigned int cameraID, vec3 position, vec3 rotation, float fov);
+unsigned int wsCameraInit(vec3 position, vec3 rotation, float fov);
 void wsCameraSyncRotation(unsigned int cameraID);
 void wsCameraGenViewMatrix(unsigned int cameraID, mat4 *view_dest);
 void wsCameraFPSMove(unsigned int cameraID, vec3 move_array, float speed);
 void wsCameraMouseMove(unsigned int cameraID, float offsetx, float offsety, float pitch_constraint);
 void wsCameraMouseMoveDamp(unsigned int cameraID, float offsetx, float offsety, float pitch_constraint, float damp);
 
-void wsCameraInit(unsigned int cameraID, vec3 position, vec3 rotation, float fov) {
+unsigned int wsCameraInit(vec3 position, vec3 rotation, float fov) {
+	static unsigned int num_cameras = 0;
+	
 	for(unsigned int i = 0; i < 3; i++) {
-		cameras.position[cameraID][i]		= position[i];
-		cameras.euler[cameraID][i]			= rotation[i];
+		cameras.position[num_cameras][i]		= position[i];
+		cameras.euler[num_cameras][i]			= rotation[i];
 		cameras.euler_interp[i]				= rotation[i];
 	}
-	wsCameraSyncRotation(cameraID);
-	glm_cross(cameras.rotation[cameraID], cameras.up[cameraID], cameras.right[cameraID]);
-	cameras.fov[cameraID] = fov;
+	wsCameraSyncRotation(num_cameras);
+	glm_cross(cameras.rotation[num_cameras], cameras.up[num_cameras], cameras.right[num_cameras]);
+	cameras.fov[num_cameras] = fov;
 	
-	printf("Camera %d: position: %.2f %.2f %.2f | forward: %.2f %.2f %.2f | field of view: %.2f\n", cameraID, 
-		cameras.position[cameraID][0], cameras.position[cameraID][1], cameras.position[cameraID][2], 
-		cameras.rotation[cameraID][0], cameras.rotation[cameraID][1], cameras.rotation[cameraID][2], 
-		cameras.fov[cameraID]);
+	printf("Camera %d: position: %.2f %.2f %.2f | forward: %.2f %.2f %.2f | field of view: %.2f\n", num_cameras, 
+		cameras.position[num_cameras][0], cameras.position[num_cameras][1], cameras.position[num_cameras][2], 
+		cameras.rotation[num_cameras][0], cameras.rotation[num_cameras][1], cameras.rotation[num_cameras][2], 
+		cameras.fov[num_cameras]);
+	
+	return num_cameras++;
 }
 
 void wsCameraGenViewMatrix(unsigned int cameraID, mat4 *view_dest) {
@@ -122,19 +126,19 @@ void wsCameraFPSMove(unsigned int cameraID, vec3 move_array, float speed) {
 void wsCameraMakeFPS(unsigned int cameraID, mat4 *view_dest, float speed, float pitch_constraint) {
 	vec3 move_array = {0};
 	
-	if(wsInputGetPress(GLFW_KEY_W) || wsInputGetPress(GLFW_KEY_UP))
+	if(wsInputGetHold(GLFW_KEY_W) || wsInputGetHold(GLFW_KEY_UP))
 		move_array[FORWARD]++;
-	if(wsInputGetPress(GLFW_KEY_S) || wsInputGetPress(GLFW_KEY_DOWN))
+	if(wsInputGetHold(GLFW_KEY_S) || wsInputGetHold(GLFW_KEY_DOWN))
 		move_array[FORWARD]--;
-	if(wsInputGetPress(GLFW_KEY_A) || wsInputGetPress(GLFW_KEY_LEFT))
+	if(wsInputGetHold(GLFW_KEY_A) || wsInputGetHold(GLFW_KEY_LEFT))
 		move_array[RIGHT]--;
-	if(wsInputGetPress(GLFW_KEY_D) || wsInputGetPress(GLFW_KEY_RIGHT))
+	if(wsInputGetHold(GLFW_KEY_D) || wsInputGetHold(GLFW_KEY_RIGHT))
 		move_array[RIGHT]++;
-	if(wsInputGetPress(GLFW_KEY_SPACE))
+	if(wsInputGetHold(GLFW_KEY_SPACE))
 		move_array[UP]++;
-	if(wsInputGetPress(GLFW_KEY_LEFT_CONTROL))
+	if(wsInputGetHold(GLFW_KEY_LEFT_CONTROL))
 		move_array[UP]--;
-	if(wsInputGetPress(GLFW_KEY_LEFT_SHIFT))
+	if(wsInputGetHold(GLFW_KEY_LEFT_SHIFT))
 		glm_vec3_scale(move_array, 10.0f, move_array);
 	
 	wsCameraFPSMove(cameraID, move_array, speed);

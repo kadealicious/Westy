@@ -4,14 +4,15 @@
 
 #include"shader.h"
 
-unsigned int wsShaderLoad(const char *path_vert, const char *path_frag, bool use_on_load, bool print_on_load) {
+int wsShaderLoad(const char *path_vert, const char *path_frag, bool use_on_load, bool print_on_load) {
 	unsigned int shader_program;
 	FILE *file;
 	char *source_vert, *source_frag;
 	unsigned int file_size;
 	
 	// Read vertex shader first.
-	file = fopen(path_vert, "rb");
+	if(!(file = fopen(path_vert, "rb")))
+		return WS_ERROR_FILE;
 	
 	fseek(file, 0, SEEK_END);
 	file_size = ftell(file);
@@ -22,7 +23,8 @@ unsigned int wsShaderLoad(const char *path_vert, const char *path_frag, bool use
 	source_vert[file_size] = '\0';
 	
 	// Read fragment shader second.
-	file = fopen(path_frag, "rb");
+	if(!(file = fopen(path_frag, "rb")))
+		return WS_ERROR_FILE;
 	
 	fseek(file, 0, SEEK_END);
 	file_size = ftell(file);
@@ -184,5 +186,5 @@ void wsShaderUpdateLightd(unsigned int shaderID, unsigned int lightID) {
 
 void wsShaderDelete(unsigned int *shaderID) {
 	glDeleteProgram(*shaderID);
-	*shaderID = WS_SHADER_NONE;
+	*shaderID = WS_NONE;
 }

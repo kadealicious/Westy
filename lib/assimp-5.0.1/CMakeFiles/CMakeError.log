@@ -1,0 +1,214 @@
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags:  
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -c 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -Aa 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -D__CLASSIC_C__ 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: --target=arm-arm-none-eabi;-mcpu=cortex-m3 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags:  
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -c 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -Aa 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -D__CLASSIC_C__ 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: --target=arm-arm-none-eabi;-mcpu=cortex-m3 
+
+The output was:
+The system cannot find the file specified
+
+
+Checking whether the C compiler is IAR using "" did not match "IAR .+ Compiler":
+Checking whether the C compiler is IAR using "" did not match "IAR .+ Compiler":
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags:  
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -c 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: --c++ 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: --ec++ 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: --target=arm-arm-none-eabi;-mcpu=cortex-m3 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags:  
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -c 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: --c++ 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: --ec++ 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: --target=arm-arm-none-eabi;-mcpu=cortex-m3 
+
+The output was:
+The system cannot find the file specified
+
+
+Checking whether the CXX compiler is IAR using "" did not match "IAR .+ Compiler":
+Checking whether the CXX compiler is IAR using "" did not match "IAR .+ Compiler":
+Detecting C compiler ABI info failed to compile with the following output:
+Change Dir: Q:/programming/westy/src/lib/assimp-5.0.1/CMakeFiles/CMakeTmp
+
+Run Build Command(s):nmake -f Makefile /nologo cmTC_d07df\fast && The system cannot find the file specified
+Generator: execution of make failed. Make command was: nmake -f Makefile /nologo cmTC_d07df\fast && 
+
+
+
+Determining if the C compiler works failed with the following output:
+Change Dir: Q:/programming/westy/src/lib/assimp-5.0.1/CMakeFiles/CMakeTmp
+
+Run Build Command(s):nmake -f Makefile /nologo cmTC_4a313\fast && The system cannot find the file specified
+Generator: execution of make failed. Make command was: nmake -f Makefile /nologo cmTC_4a313\fast && 
+
+
+Detecting C compiler ABI info failed to compile with the following output:
+Change Dir: Q:/programming/westy/src/lib/assimp-5.0.1/CMakeFiles/CMakeTmp
+
+Run Build Command(s):nmake -f Makefile /nologo cmTC_bed8b\fast && The system cannot find the file specified
+Generator: execution of make failed. Make command was: nmake -f Makefile /nologo cmTC_bed8b\fast && 
+
+
+
+Determining if the C compiler works failed with the following output:
+Change Dir: Q:/programming/westy/src/lib/assimp-5.0.1/CMakeFiles/CMakeTmp
+
+Run Build Command(s):nmake -f Makefile /nologo cmTC_4a08d\fast && The system cannot find the file specified
+Generator: execution of make failed. Make command was: nmake -f Makefile /nologo cmTC_4a08d\fast && 
+
+

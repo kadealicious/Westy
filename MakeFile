@@ -1,19 +1,18 @@
 CC=gcc
-CFLAGS=-std=c99 -Wall
+CFLAGS=-std=c99 -MMD
 LIB=-lmingw32 -lglfw3dll -lopengl32 -lfreetype6
-DEPS=globals.h graphics.h deferredrenderer.h shader.h input.h camera.h model.h material.h light.h text.h
+DEPS=globals.h graphics.h deferredrenderer.h shader.h input.h camera.h model.h material.h light.h text.h lobj.h
 OBJ=globals.o main.o graphics.o deferredrenderer.o shader.o input.o camera.o model.o material.o light.o text.o glew.o
 
-all: app
+all: a
 
 main.o: main.c
 	$(CC) $(CFLAGS) -c $^
 glew.o: glew.c
 	$(CC) $(CFLAGS) -c $^
-
 globals.o: globals.c globals.h
 	$(CC) $(CFLAGS) -c $^
-graphics.o: graphics.c graphics.h
+graphics.o: graphics.c graphics.h lobj.h
 	$(CC) $(CFLAGS) -c $^
 deferredrenderer.o: deferredrenderer.c deferredrenderer.h
 	$(CC) $(CFLAGS) -c $^
@@ -32,9 +31,8 @@ light.o: light.c light.h
 text.o: text.c text.h
 	$(CC) $(CFLAGS) -c $^
 
-app: $(OBJ)
+.PHONY: a clean
+a: $(OBJ)
 	$(CC) $(CFLAGS) -o builds/$@ $^ $(LIB)
-
-.PHONY: clean
 clean:
 	-del edit *.o

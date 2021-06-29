@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
 }
 
 int wsInit() {
-	printf("~INIT~\n");
+	printf("---INIT---\n");
 	if(!wsInitGLFW()) return WS_ERROR_GLFW;
 	if(!wsInitGLEW()) return WS_ERROR_GLEW;
 	
@@ -49,21 +49,21 @@ int wsInit() {
 	
 	wsInputInit(window, 0.3f);
 	
-	printf("~INIT~\n\n");
+	printf("---INIT---\n\n");
 	return WS_OKAY;
 }
 
 bool wsInitGLEW() {
 	glewExperimental = true;
 	if(glewInit() != GLEW_OK) {
-		fprintf(stderr, "ERROR - GLEW init fail\n");
+		fprintf(stderr, "ERROR - Failed to initialize GLEW\n");
 		return false;
-	} else printf("GLEW init success\n");
+	} else printf("GLEW initialized\n");
 	return true;
 }
 bool wsInitGLFW() {
 	if(!glfwInit()) {
-		fprintf(stderr, "ERROR - GLFW init fail\n");
+		fprintf(stderr, "ERROR - Failed to initialize GLFW\n");
 		return false;
 	}
 	
@@ -97,10 +97,12 @@ bool wsInitGLFW() {
 	float content_scale_y;
 	glfwGetMonitorContentScale(monitor_primary, &content_scale_x, &content_scale_y);
 	
+	printf("---PLATFORM INFO---\n");
 	printf("%u fps, %.4f frametime\n", target_fps, (1.0f / target_fps));
 	printf("Video mode: %d x %d\n", video_mode->width, video_mode->height);
 	printf("Window dimensions: %d x %d\n", window_width, window_height);
-	printf("Monitor content scale: %f x %f\n", content_scale_x, content_scale_y);
+	printf("Monitor content scale: %.2f x %.2f\n", content_scale_x, content_scale_y);
+	printf("---PLATFORM INFO---\n\n");
 	
 	window = glfwCreateWindow(window_width, window_height, "Deferred rendering?  More like deferred findings.", NULL, NULL);
 	if(window == NULL) {
@@ -126,12 +128,12 @@ bool wsInitGLFW() {
 	glfwSetCursorPosCallback(window, wsInputCursorPosCallback);
 	glfwSetScrollCallback(window, wsInputScrollCallback);
 	
-	printf("GLFW init success\n");
+	printf("GLFW initialized\n");
 	return true;
 }
 
 int wsRun() {
-	printf("~RUN~\n");
+	printf("---RUN---\n");
 	
 	double now_time;
 	double last_time = glfwGetTime();
@@ -149,7 +151,7 @@ int wsRun() {
 		glfwPollEvents();
 		glfwSwapBuffers(window);
 		
-		if(wsInputGetPressOnce(GLFW_KEY_F11)) {
+		if(wsInputGetPress(GLFW_KEY_F11)) {
 			if(glfwGetWindowMonitor(window) == NULL) {
 				printf("Switching to fullscreen mode...\n");
 				glfwSetWindowMonitor(window, monitor_primary, 0, 0, monitor_width, monitor_height, target_fps);
@@ -169,7 +171,7 @@ int wsRun() {
 		}
 	}
 	
-	printf("~RUN~\n\n");
+	printf("---RUN---\n\n");
 	return state;
 }
 
@@ -189,7 +191,7 @@ void wsMonitorCallback(GLFWmonitor *monitor, int ev) {
 			monitor = glfwGetPrimaryMonitor();
 			break;
 		default:
-			printf("Misc. monitor event occurred: %d\n", ev);
+			printf("Misc. monitor event occurred, event code: %d\n", ev);
 			break;
 	}
 }
@@ -199,11 +201,11 @@ void wsFrameBufferSizeCallback(GLFWwindow *window, int width, int height) {
 	glViewport(0, 0, width, height);
 	wsGraphicsResize();
 	
-	printf("Frame buffer size changed to: %d x %d\n", screen_width, screen_height);
+	printf("Resized framebuffer to: %d x %d\n", screen_width, screen_height);
 }
 
 int wsQuit(unsigned int app_state) {
-	printf("~QUIT~\n");
+	printf("---QUIT---\n");
 	
 	wsGraphicsTerminate();
 	
@@ -243,6 +245,6 @@ int wsQuit(unsigned int app_state) {
 			break;
 	}
 	
-	printf("~QUIT~\n");
+	printf("---QUIT---\n");
 	return app_state;
 }

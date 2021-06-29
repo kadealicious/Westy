@@ -4,9 +4,6 @@
 #include"text.h"
 #include"shader.h"
 
-// Max index of possible chars.  Using ASCII because fuck it.
-const unsigned int WS_NUM_CHARS = 128;
-
 // For textured quads method.
 unsigned int text_vao;
 unsigned int text_vbo;
@@ -52,14 +49,14 @@ bool wsTextLoadFace(const char *face_path, unsigned int face_size) {
 	
 	// Library initialization.
 	ft_err = FT_Init_FreeType(&ft_lib);
-	if(ft_err != WS_OKAY) {
+	if(ft_err != 0) {
 		printf("ERROR - FreeType library @ %p init fail - code 0x%02x\n", &ft_lib, ft_err);
 		return false;
 	}
 	
 	// Font loading.
 	ft_err = FT_New_Face(ft_lib, face_path, 0, &ft_face);
-	if(ft_err != WS_OKAY) {
+	if(ft_err != 0) {
 		printf("ERROR - FreeType face '%s' load fail - code 0x%02x\n", face_path, ft_err);
 		return false;
 	}
@@ -70,7 +67,7 @@ bool wsTextLoadFace(const char *face_path, unsigned int face_size) {
 	// Load all characters individually.  Error codes in hex for easy FreeType docs consultation.
 	for(unsigned int i = 0; i < WS_NUM_CHARS; i++) {
 		FT_Error ft_err = FT_Load_Char(ft_face, (char)i, FT_LOAD_RENDER);
-		if(ft_err != WS_OKAY) {
+		if(ft_err != 0) {
 			printf("ERROR - FreeType char\t%c (%d)\tload fail - code 0x%02x\n", (char)i, i, ft_err);
 			continue;
 		}

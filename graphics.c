@@ -13,6 +13,7 @@
 #include"light.h"
 #include"text.h"
 #include"input.h"
+#include"lobj.h"
 
 // To set vertex attribute pointer(s): 
 /* First set the index/location of the pointer.  Then set the size, type, and if coordinates are normalized.
@@ -26,12 +27,14 @@ unsigned int text_vao, cube_vao, light_vao;
 
 short camera_active = WS_CAMERA_OFF;
 
-unsigned int text_shader = WS_SHADER_NONE, text_billboard_shader = WS_SHADER_NONE;
-unsigned int light_shader = WS_SHADER_NONE;
+unsigned int text_shader = WS_NONE, text_billboard_shader = WS_NONE;
+unsigned int light_shader = WS_NONE;
 
 unsigned int cube_diffuse_map;
 unsigned int cube_specular_map;
 
+unsigned int mesh_teapot;
+unsigned int mesh_canyon;
 wsModel cube_model;
 wsMaterial cube_material;
 
@@ -63,27 +66,33 @@ void wsGraphicsLoadTexture(const char *path, unsigned int *dest_texture, unsigne
 int wsGraphicsInit() {
 	stbi_set_flip_vertically_on_load(true);
 	
-	// Set constant OpenGL states.
-	glClearColor(0.025f, 0.025f, 0.025f, 1.0f);
+	// OpenGL stuff.
+	// glClearColor(0.025f, 0.025f, 0.025f, 1.0f);
+	glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glEnable(GL_FRAMEBUFFER_SRGB);
+	// glEnable(GL_CULL_FACE);
+	// glCullFace(GL_BACK);
 	
 	wsDefRenInit();
 	wsGraphicsInitText();
 	wsGraphicsInitLighting();
 	wsGraphicsInitTestCube();
 	
-	camera_active = WS_CAMERA0;
-	wsCameraInit(camera_active, (vec3){0.0f, 0.0f, 3.0f}, (vec3){0.0f, -90.0f, 0.0f}, 90.0f);
+	camera_active = wsCameraInit((vec3){0.0f, 0.0f, 3.0f}, (vec3){0.0f, -90.0f, 0.0f}, 90.0f);
+	wsCameraInit((vec3){0.0f, 0.0f, 3.0f}, (vec3){0.0f, -90.0f, 0.0f}, 90.0f);
+	
+	ojInit();
+	mesh_teapot = ojLoadOBJ("models/test/teapot.obj");
 	
 	printf("Graphics initialized\n");
 	return WS_OKAY;
 }
 
 void wsGraphicsInitText() {
-	if(text_shader == WS_SHADER_NONE)			text_shader = wsShaderLoad("shaders/text.vert", "shaders/text.frag", false, false);
-	if(text_billboard_shader == WS_SHADER_NONE)	text_billboard_shader = wsShaderLoad("shaders/text_billboard.vert", "shaders/text_billboard.frag", false, false);
+	if(text_shader == WS_NONE)				text_shader = wsShaderLoad("shaders/text.vert", "shaders/text.frag", false, false);
+	if(text_billboard_shader == WS_NONE)	text_billboard_shader = wsShaderLoad("shaders/text_billboard.vert", "shaders/text_billboard.frag", false, false);
 	
 	wsTextInit();
 	wsTextLoadFace("fonts/Roboto_Mono/static/RobotoMono-Medium.ttf", 108);
@@ -96,15 +105,18 @@ void wsGraphicsInitLighting() {
 		pointlight_positions[i][2] = (rand() % spread) - (spread * 0.5f);
 	}
 	
-	if(light_shader == WS_SHADER_NONE)	light_shader = wsShaderLoad("shaders/lightsource.vert", "shaders/lightsource.frag", false, false);
+	if(light_shader == WS_NONE)	light_shader = wsShaderLoad("shaders/lightsource.vert", "shaders/lightsource.frag", false, false);
 	
 	for(unsigned int i = 0; i < WS_MAX_POINTLIGHTS; i++)		wsLightInitp(i, pointlight_positions[i], (vec3){0.4f, 0.85f, 0.0f}, 0.5f, 0.5f, true);
 	for(unsigned int i = 0; i < WS_MAX_SPOTLIGHTS; i++)			wsLightInitf(0, cameras.position[camera_active], cameras.rotation[camera_active], (vec3){0.7f, 0.7f, 0.5f}, 1.0f, 0.5f, 17.5f, false);
-	for(unsigned int i = 0; i < WS_MAX_DIRECTIONLIGHTS; i++)	wsLightInitd(0, (vec3){-0.2f, -1.0f, -0.3f}, (vec3){1.0f, 0.8f, 0.0f}, 0.1f, false);
+	for(unsigned int i = 0; i < WS_MAX_DIRECTIONLIGHTS; i++)	wsLightInitd(0, (vec3){-0.2f, -1.0f, -0.3f}, (vec3){1.0f, 1.0f, 1.0f}, 0.1f, false);
 }
 void wsGraphicsInitTestCube() {
+	// Test cube.
 	wsMaterialInit(&cube_material, (vec3){1.0f, 0.5f, 0.31f}, (vec3){1.0f, 0.5f, 0.31f}, (vec3){0.5f, 0.5f, 0.5f}, 8.0f);
 	wsModelInit(&cube_model);
+	wsGraphicsLoadTexture("textures/test/woodcrate_diffuse.png", &cube_diffuse_map, GL_CLAMP_TO_EDGE, GL_NEAREST);
+	wsGraphicsLoadTexture("textures/test/woodcrate_specular.png", &cube_specular_map, GL_CLAMP_TO_EDGE, GL_NEAREST);
 	
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -120,14 +132,12 @@ void wsGraphicsInitTestCube() {
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 	
+	// Light cube.
 	glGenVertexArrays(1, &light_vao);
 	glBindVertexArray(light_vao);
 	
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	
-	wsGraphicsLoadTexture("textures/test/woodcrate_diffuse.png", &cube_diffuse_map, GL_CLAMP_TO_EDGE, GL_NEAREST);
-	wsGraphicsLoadTexture("textures/test/woodcrate_specular.png", &cube_specular_map, GL_CLAMP_TO_EDGE, GL_NEAREST);
 }
 
 void wsGraphicsLoadTexture(const char *path, unsigned int *dest_texture, unsigned int wrap_style, unsigned int filter_style) {
@@ -151,6 +161,16 @@ void wsGraphicsLoadTexture(const char *path, unsigned int *dest_texture, unsigne
 	stbi_image_free(img_data);
 }
 
+void wsGraphicsRenderMesh(mat4 *matrix_model, unsigned int shaderID, unsigned int meshID) {
+	glm_mat4_identity(*matrix_model);
+	glm_translate(*matrix_model, (vec3){0.0f, 1.0f, 3.0f});
+	wsShaderSetMat4(shaderID, "model", matrix_model);
+	wsShaderSetNormalMatrix(shaderID, matrix_model);
+	
+	glBindVertexArray(ojGetVAO(meshID));
+	glDrawArrays(GL_TRIANGLES, 0, ojGetBufferSize(meshID));
+}
+
 // The exciting stuff!
 void wsGraphicsRender() {
 	mat4 matrix_model;
@@ -168,18 +188,24 @@ void wsGraphicsRender() {
 	// Handle FPS camera controls, then generate new lookat matrix (for view matrix) using camera position + rotation.
 	wsCameraMakeFPS(camera_active, &matrix_view, 2.5f, 89.0f);
 	
-	// Turn off blending for deferred pass.
+	if(wsInputGetPress(GLFW_KEY_G))
+		camera_active = (camera_active == WS_CAMERA0) ? WS_CAMERA1 : WS_CAMERA0;
+	if(wsInputGetPress(GLFW_KEY_Z)) {
+		unsigned int polygon_mode;
+		glGetIntegerv(GL_POLYGON_MODE, &polygon_mode);
+		glPolygonMode(GL_FRONT_AND_BACK, polygon_mode == GL_FILL ? GL_LINE : GL_FILL);
+	}
+	
+	// Turn off blending for deferred pass, begin deferred rendering.
 	glDisable(GL_BLEND);
-	// Begin deferred rendering.
 	wsDefRenGeometryPass(&matrix_model, &matrix_view, &matrix_perspective, camera_active);
 	wsGraphicsWorldRender(&matrix_model, &matrix_view, &matrix_perspective, &matrix_ortho);
 	wsDefRenLightPass(camera_active);
 	// End deferred rendering.
 	
-	// Turn on blending for forward pass.
+	// Turn on blending for forward pass, set blend function, begin forward rendering.
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	// Begin forward rendering.
 	wsGraphicsLightsRender(&matrix_model, &matrix_view, &matrix_perspective, &matrix_ortho);
 	wsGraphicsUIRender(&matrix_model, &matrix_view, &matrix_perspective, &matrix_ortho);
 	// End forward rendering.
@@ -188,6 +214,8 @@ void wsGraphicsRender() {
 // Render world.
 void wsGraphicsWorldRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_perspective, mat4 *matrix_ortho) {
 	unsigned int shader_active = wsShaderGetActive();
+	
+	// Test cubes.
 	for(unsigned int i = 0; i < 10; i++) {
 		// Transform, rotate, then translate model matrix.  matrix multiplication is done in reverse.
 		glm_mat4_identity(*matrix_model);
@@ -209,13 +237,16 @@ void wsGraphicsWorldRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_p
 		glBindVertexArray(cube_vao);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
+	
+	// Test teapot.
+	wsGraphicsRenderMesh(matrix_model, shader_active, mesh_teapot);
 }
 
 // Render lights.
 void wsGraphicsLightsRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_perspective, mat4 *matrix_ortho) {
 	// Point lights.
 	static bool pointlight_toggle = true;
-	if(wsInputGetPressOnce(GLFW_KEY_1)) {
+	if(wsInputGetPress(GLFW_KEY_1)) {
 		pointlight_toggle = !pointlight_toggle;
 		for(unsigned int i = 0; i < WS_MAX_POINTLIGHTS; i++)
 			wsLightTogglep(i, pointlight_toggle);
@@ -241,7 +272,7 @@ void wsGraphicsLightsRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_
 	
 	// Spotlights.
 	static bool flashlight_toggle = false;
-	if(wsInputGetPressOnce(GLFW_KEY_2)) {
+	if(wsInputGetPress(GLFW_KEY_2)) {
 		flashlight_toggle = !flashlight_toggle;
 		wsLightTogglef(0, flashlight_toggle);
 		if(wsLightGetTogglef(0))
@@ -254,16 +285,13 @@ void wsGraphicsLightsRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_
 	
 	// Directional lights.
 	static bool directionlight_toggle = false;
-	if(wsInputGetPressOnce(GLFW_KEY_3)) {
+	if(wsInputGetPress(GLFW_KEY_3)) {
 		directionlight_toggle = !directionlight_toggle;
 		wsLightToggled(0, directionlight_toggle);
 		if(wsLightGetToggled(0))
 			printf("Turning on directionlights...\n");
 		else printf("Turning off directionlights...\n");
 	}
-	// Sunset.
-	float color_interp = (sin(glfwGetTime()) + 4.0f) * 0.15f;
-	wsLightInterpColord(0, (vec3){1.0f, 0.4f, 0.0f}, (vec3){0.85f, 0.6f, 0.0f}, color_interp);
 	
 	// Draw pointlight cubes.
 	for(unsigned int i = 0; i < WS_MAX_POINTLIGHTS; i++) {
@@ -295,11 +323,14 @@ void wsGraphicsUIRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_pers
 	// UI labels.
 	wsTextRender(text_shader, "The quick brown fox jumps over the lazy dog!", (vec2){910.0f, 1030.0f}, 0.35f, (vec3){1.0f, 1.0f, 0.5f}, matrix_ortho);
 	
-	wsTextRender(text_shader, "[W][A][S][D] for z/x-axis", (vec2){10.0f, 1050.0f}, 0.2f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
-	wsTextRender(text_shader, "[CTRL][SPACE] for y-axis", (vec2){10.0f, 1025.0f}, 0.2f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
+	wsTextRender(text_shader, "[W][A][S][D] for z/x-axis movement", (vec2){10.0f, 1050.0f}, 0.2f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
+	wsTextRender(text_shader, "[CTRL][SPACE] for y-axis movement", (vec2){10.0f, 1025.0f}, 0.2f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
 	wsTextRender(text_shader, "[1] to toggle point lights", (vec2){10.0f, 1000.0f}, 0.2f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
 	wsTextRender(text_shader, "[2] to toggle spotlights", (vec2){10.0f, 975.0f}, 0.2f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
 	wsTextRender(text_shader, "[3] to toggle directional lights", (vec2){10.0f, 950.0f}, 0.2f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
+	wsTextRender(text_shader, "[G] to switch between cameras", (vec2){10.0f, 925.0f}, 0.2f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
+	wsTextRender(text_shader, "[Z] to toggle wireframe mode", (vec2){10.0f, 900.0f}, 0.2f, (vec3){1.0f, 1.0f, 1.0f}, matrix_ortho);
+	
 	wsTextRender(text_shader, "kade samson", (vec2){575.0f, 1050.0f}, 0.1f, (vec3){0.5f, 1.0f, 1.0f}, matrix_ortho);
 	wsTextRender(text_shader, "version 66642069", (vec2){575.0f, 1040.0f}, 0.1f, (vec3){0.5f, 1.0f, 1.0f}, matrix_ortho);
 }
@@ -311,6 +342,9 @@ void wsGraphicsResize() {
 
 void wsGraphicsTerminate() {
 	wsModelTerminate(&cube_model);
+	ojDeleteOBJ(mesh_teapot);
+	ojTerminate();
+	
 	wsTextTerminate();
 	wsDefRenTerminate();
 	

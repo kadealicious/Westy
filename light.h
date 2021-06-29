@@ -4,10 +4,6 @@
 #include<stdbool.h>
 #include"globals.h"
 
-#define WS_MAX_POINTLIGHTS 50
-#define WS_MAX_SPOTLIGHTS 25
-#define WS_MAX_DIRECTIONLIGHTS 5
-
 typedef struct wsPointLights {
 	bool toggle[WS_MAX_POINTLIGHTS];
 	vec3 position[WS_MAX_POINTLIGHTS];

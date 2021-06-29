@@ -1,0 +1,1 @@
+glew.o: glew.c

@@ -7,10 +7,8 @@
 #include"camera.h"
 #include"light.h"
 
-enum WS_SHADER_STATES { WS_SHADER_NONE = -1, WS_SHADER_ERROR = 1 };
-
 // Load shader.
-unsigned int wsShaderLoad(const char *path_vert, const char *path_frag, bool use_on_load, bool print_on_load);
+int wsShaderLoad(const char *path_vert, const char *path_frag, bool use_on_load, bool print_on_load);
 // Use shader.
 void wsShaderUse(unsigned int shaderID);
 // Get active shader.

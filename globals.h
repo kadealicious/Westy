@@ -9,8 +9,30 @@
 #include<ft2build.h>
 #include<freetype/freetype.h>
 
-enum ERROR_STATES { WS_OKAY, WS_QUIT_NORMAL, WS_QUIT_NORMAL_CONSOLE, WS_ERROR_GLFW, WS_ERROR_GLEW, 
-	WS_ERROR_FREETYPE, WS_ERROR_UNKNOWN };
+#define WS_MAX_CAMERAS 10
+#define WS_CAMERA_OFF -1
+#define WS_CAMERA0 0
+#define WS_CAMERA1 1
+#define WS_CAMERA2 2
+#define WS_CAMERA3 3
+#define WS_CAMERA4 4
+#define WS_CAMERA5 5
+#define WS_CAMERA6 6
+#define WS_CAMERA7 7
+#define WS_CAMERA8 8
+#define WS_CAMERA9 9
+
+#define WS_MAX_POINTLIGHTS 50
+#define WS_MAX_SPOTLIGHTS 25
+#define WS_MAX_DIRECTIONLIGHTS 5
+
+#define WS_MAX_MESHES 50
+
+// Max index of possible chars.  Using ASCII because fuck it.
+#define WS_NUM_CHARS 128
+
+enum WS_STATES { WS_NONE = INT_MIN, WS_OKAY, WS_QUIT_NORMAL, WS_QUIT_NORMAL_CONSOLE, WS_ERROR_GLFW, WS_ERROR_GLEW, 
+	WS_ERROR_FREETYPE, WS_ERROR_FILE, WS_ERROR_UNKNOWN };
 
 extern const vec3 WS_WORLD_UP;
 extern const vec3 WS_WORLD_RIGHT;

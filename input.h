@@ -11,8 +11,8 @@ char key_once[GLFW_KEY_LAST + 1];
 
 void wsInputInit(GLFWwindow *window, float sensitivity);
 
+bool wsInputGetHold(int key);
 bool wsInputGetPress(int key);
-bool wsInputGetPressOnce(int key);
 bool wsInputGetRelease(int key);
 float wsInputGetMousePosX();
 float wsInputGetMousePosY();
