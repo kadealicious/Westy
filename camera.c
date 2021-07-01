@@ -4,7 +4,7 @@
 unsigned int wsCameraInit(vec3 position, vec3 rotation, float fov);
 void wsCameraSyncRotation(unsigned int cameraID);
 void wsCameraGenViewMatrix(unsigned int cameraID, mat4 *view_dest);
-void wsCameraFPSMove(unsigned int cameraID, vec3 move_array, float speed);
+void wsCameraMove(unsigned int cameraID, vec3 move_array, float speed);
 void wsCameraMouseMove(unsigned int cameraID, float offsetx, float offsety, float pitch_constraint);
 void wsCameraMouseMoveDamp(unsigned int cameraID, float offsetx, float offsety, float pitch_constraint, float damp);
 
@@ -95,7 +95,7 @@ void wsCameraMouseMoveDamp(unsigned int cameraID, float offsetx, float offsety, 
 	wsCameraSyncRotationDamped(cameraID);
 }
 
-void wsCameraFPSMove(unsigned int cameraID, vec3 move_array, float speed) {
+void wsCameraMove(unsigned int cameraID, vec3 move_array, float speed) {
 	vec3 move_vector = {0};
 	vec3 move_vector_temp = {0};
 	
@@ -103,21 +103,38 @@ void wsCameraFPSMove(unsigned int cameraID, vec3 move_array, float speed) {
 	
 	// Forward and backward
 	glm_vec3_copy(cameras.rotation[cameraID], move_vector_temp);
-	move_vector_temp[1] = 0.0f;
+	move_vector_temp[UP] = 0.0f;
 	glm_normalize(move_vector_temp);
-	glm_vec3_scale(move_vector_temp, speed * move_array[0], move_vector_temp);
+	glm_vec3_scale(move_vector_temp, speed * move_array[FORWARD], move_vector_temp);
 	glm_vec3_add(move_vector_temp, move_vector, move_vector);
 	
 	// Left and right
 	glm_vec3_copy(cameras.right[cameraID], move_vector_temp);
-	move_vector_temp[1] = 0.0f;
+	move_vector_temp[UP] = 0.0f;
 	glm_normalize(move_vector_temp);
-	glm_vec3_scale(move_vector_temp, speed * move_array[1], move_vector_temp);
+	glm_vec3_scale(move_vector_temp, speed * move_array[RIGHT], move_vector_temp);
 	glm_vec3_add(move_vector_temp, move_vector, move_vector);
 	
-	// Up and down
-	glm_vec3_scale(cameras.up[cameraID], speed * move_array[2], move_vector_temp);
-	glm_vec3_add(move_vector_temp, move_vector, move_vector);
+	// Fly camera up and down.
+	// glm_vec3_scale(cameras.up[cameraID], speed * move_array[2], move_vector_temp);
+	// glm_vec3_add(move_vector_temp, move_vector, move_vector);
+	
+	// Head bob.
+	static float head_bob = 0.0f;
+	float head_bob_target = ((sin(glfwGetTime() * 20) + 1) * 0.025f);
+	head_bob_target *= (move_array[FORWARD] || move_array[RIGHT]);		// Don't bob if not moving.
+	head_bob_target += fmin(0.0f, move_array[UP]) * 0.5f;				// Crouching.
+	head_bob += (head_bob_target - head_bob) * 0.35f;					// Interpolate head bob.
+	
+	// FPS camera up and down.
+	static float yv = 0.0f;
+	float jump_height = 0.15f, gravity = 0.65f;
+	if(cameras.position[cameraID][UP] < head_bob) {
+		if(move_array[UP] > 0)
+			yv = jump_height;
+		else cameras.position[cameraID][UP] = head_bob;
+	} else yv -= gravity * delta_time;
+	cameras.position[cameraID][UP] += yv;
 	
 	// The shit that makes you go places.
 	glm_vec3_add(cameras.position[cameraID], move_vector, cameras.position[cameraID]);
@@ -125,6 +142,7 @@ void wsCameraFPSMove(unsigned int cameraID, vec3 move_array, float speed) {
 
 void wsCameraMakeFPS(unsigned int cameraID, mat4 *view_dest, float speed, float pitch_constraint) {
 	vec3 move_array = {0};
+	static bool is_fly_camera = false;
 	
 	if(wsInputGetHold(GLFW_KEY_W) || wsInputGetHold(GLFW_KEY_UP))
 		move_array[FORWARD]++;
@@ -136,12 +154,13 @@ void wsCameraMakeFPS(unsigned int cameraID, mat4 *view_dest, float speed, float 
 		move_array[RIGHT]++;
 	if(wsInputGetHold(GLFW_KEY_SPACE))
 		move_array[UP]++;
-	if(wsInputGetHold(GLFW_KEY_LEFT_CONTROL))
+	if(wsInputGetHold(GLFW_KEY_LEFT_CONTROL)) {
 		move_array[UP]--;
-	if(wsInputGetHold(GLFW_KEY_LEFT_SHIFT))
-		glm_vec3_scale(move_array, 10.0f, move_array);
+		move_array[FORWARD] *= 0.5f;
+		move_array[RIGHT] *= 0.5f;
+	}
 	
-	wsCameraFPSMove(cameraID, move_array, speed);
-	wsCameraMouseMoveDamp(cameraID, wsInputGetMouseMoveX() / 3.0, wsInputGetMouseMoveY() / 3.0, pitch_constraint, 10.0f);
+	wsCameraMove(cameraID, move_array, speed);
+	wsCameraMouseMoveDamp(cameraID, wsInputGetMouseMoveX() / 3.0, wsInputGetMouseMoveY() / 3.0, pitch_constraint, 25.0f);
 	wsCameraGenViewMatrix(cameraID, view_dest);
 }

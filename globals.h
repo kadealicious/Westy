@@ -31,8 +31,8 @@
 // Max index of possible chars.  Using ASCII because fuck it.
 #define WS_NUM_CHARS 128
 
-enum WS_STATES { WS_NONE = INT_MIN, WS_OKAY, WS_QUIT_NORMAL, WS_QUIT_NORMAL_CONSOLE, WS_ERROR_GLFW, WS_ERROR_GLEW, 
-	WS_ERROR_FREETYPE, WS_ERROR_FILE, WS_ERROR_UNKNOWN };
+enum WS_STATES { WS_NONE, WS_OKAY, WS_QUIT_NORMAL, WS_QUIT_NORMAL_CONSOLE, WS_ERROR_GLFW, WS_ERROR_GLEW, 
+	WS_ERROR_FREETYPE, WS_ERROR_FILE, WS_ERROR_MODEL, WS_ERROR_UNKNOWN };
 
 extern const vec3 WS_WORLD_UP;
 extern const vec3 WS_WORLD_RIGHT;
@@ -45,18 +45,16 @@ extern int screen_height;
 extern unsigned int target_fps;
 extern float delta_time;
 
-// Will return a float from 0.0f-[range of num0 - num1].
-float wsInterpf(float num0, float num1, float interp);
-// Will return a double from 0.0-[range of num0 - num1].
-double wsInterpd(double num0, double num1, float interp);
-// Will return an int from 0-[range of num0 - num1].
-int wsInterpi(int num0, int num1, float interp);
-// Will return a float from 0.0f-[num0 + num1].
-float wsAddDampf(float num0, float num1, float interp);
-// Will return a double from 0.0-[num0 + num1].
-double wsAddDampd(double num0, double num1, float interp);
-// Will return an int from 0-[num0 + num1].
-int wsAddDampi(int num0, int num1, float interp);
+
+float wsInterpf(float num0, float num1, float interp);		// Returns a float from 0.0f-[range of num0 - num1].
+double wsInterpd(double num0, double num1, float interp);	// Returns a double from 0.0-[range of num0 - num1].
+int wsInterpi(int num0, int num1, float interp);			// Returns an int from 0-[range of num0 - num1].
+float wsAddDampf(float num0, float num1, float interp);		// Returns a float from 0.0f-[num0 + num1].
+double wsAddDampd(double num0, double num1, float interp);	// Returns a double from 0.0-[num0 + num1].
+int wsAddDampi(int num0, int num1, float interp);			// Returns an int from 0-[num0 + num1].
+// TODO: These.
+/* float wsFastSqrt(float num);								// Returns a fast square root.
+float wsFastInvSqrt(float num);								// Returns a fast inverse square root. */
 
 float wsGetAspectRatio();
 

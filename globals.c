@@ -18,8 +18,7 @@ float wsAddDampf(float num0, float num1, float interp)		{ return (num0 + num1) *
 double wsAddDampd(double num0, double num1, float interp)	{ return (num0 + num1) * interp; }
 int wsAddDampi(int num0, int num1, float interp)			{ return (int)((num0 + num1) * interp); }
 
-float wsGetAspectRatio()
-	{ return ((float)window_height / (float)window_width); }
+float wsGetAspectRatio() { return ((float)window_height / (float)window_width); }
 
 void wsPrintMat4(mat4 *mat, const char *tag) {
 	printf("'%s' mat4 %p:\n", tag, mat);

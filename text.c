@@ -30,7 +30,7 @@ void wsTextInit() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	
-	printf("Text init success\n");
+	printf("Text initialized\n");
 }
 
 void wsPrintChar(Char *ch, char c) {

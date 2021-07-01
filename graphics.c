@@ -25,7 +25,7 @@
 unsigned int text_vbo, vbo;
 unsigned int text_vao, cube_vao, light_vao;
 
-short camera_active = WS_CAMERA_OFF;
+unsigned int camera_active = WS_CAMERA_OFF;
 
 unsigned int text_shader = WS_NONE, text_billboard_shader = WS_NONE;
 unsigned int light_shader = WS_NONE;
@@ -34,7 +34,8 @@ unsigned int cube_diffuse_map;
 unsigned int cube_specular_map;
 
 unsigned int mesh_teapot;
-unsigned int mesh_canyon;
+unsigned int mesh_lamp;
+unsigned int mesh_cube;
 wsModel cube_model;
 wsMaterial cube_material;
 
@@ -83,8 +84,11 @@ int wsGraphicsInit() {
 	camera_active = wsCameraInit((vec3){0.0f, 0.0f, 3.0f}, (vec3){0.0f, -90.0f, 0.0f}, 90.0f);
 	wsCameraInit((vec3){0.0f, 0.0f, 3.0f}, (vec3){0.0f, -90.0f, 0.0f}, 90.0f);
 	
-	ojInit();
-	mesh_teapot = ojLoadOBJ("models/test/teapot.obj");
+	wsObjInit();
+	// mesh_teapot = ojLoadOBJ("models/test/teapot.obj", OJ_FACES);
+	mesh_teapot = wsObjLoad("models/test/teapot_normals.obj", WS_FACES | WS_NORMALS);
+	// mesh_lamp = wsObjLoad("models/test/ceiling_lamp.obj", WS_FACES | WS_NORMALS);
+	// mesh_cube = wsObjLoad("models/test/cube.obj", WS_FACES | WS_NORMALS | WS_TEX);
 	
 	printf("Graphics initialized\n");
 	return WS_OKAY;
@@ -109,7 +113,7 @@ void wsGraphicsInitLighting() {
 	
 	for(unsigned int i = 0; i < WS_MAX_POINTLIGHTS; i++)		wsLightInitp(i, pointlight_positions[i], (vec3){0.4f, 0.85f, 0.0f}, 0.5f, 0.5f, true);
 	for(unsigned int i = 0; i < WS_MAX_SPOTLIGHTS; i++)			wsLightInitf(0, cameras.position[camera_active], cameras.rotation[camera_active], (vec3){0.7f, 0.7f, 0.5f}, 1.0f, 0.5f, 17.5f, false);
-	for(unsigned int i = 0; i < WS_MAX_DIRECTIONLIGHTS; i++)	wsLightInitd(0, (vec3){-0.2f, -1.0f, -0.3f}, (vec3){1.0f, 1.0f, 1.0f}, 0.1f, false);
+	for(unsigned int i = 0; i < WS_MAX_DIRECTIONLIGHTS; i++)	wsLightInitd(0, (vec3){0.0f, 0.0f, 0.0f}, (vec3){1.0f, 1.0f, 1.0f}, 1.0f, false);// wsLightInitd(0, (vec3){-0.2f, -1.0f, -0.3f}, (vec3){1.0f, 1.0f, 1.0f}, 0.1f, false);
 }
 void wsGraphicsInitTestCube() {
 	// Test cube.
@@ -162,13 +166,11 @@ void wsGraphicsLoadTexture(const char *path, unsigned int *dest_texture, unsigne
 }
 
 void wsGraphicsRenderMesh(mat4 *matrix_model, unsigned int shaderID, unsigned int meshID) {
-	glm_mat4_identity(*matrix_model);
-	glm_translate(*matrix_model, (vec3){0.0f, 1.0f, 3.0f});
 	wsShaderSetMat4(shaderID, "model", matrix_model);
 	wsShaderSetNormalMatrix(shaderID, matrix_model);
 	
-	glBindVertexArray(ojGetVAO(meshID));
-	glDrawArrays(GL_TRIANGLES, 0, ojGetBufferSize(meshID));
+	glBindVertexArray(wsObjGetVAO(meshID));
+	glDrawArrays(GL_TRIANGLES, 0, wsObjGetBufferSize(meshID));
 }
 
 // The exciting stuff!
@@ -239,7 +241,11 @@ void wsGraphicsWorldRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_p
 	}
 	
 	// Test teapot.
-	wsGraphicsRenderMesh(matrix_model, shader_active, mesh_teapot);
+	glm_mat4_identity(*matrix_model);
+	for(size_t i = 0; i < wsObjGetNumMeshes(); i++) {
+		wsGraphicsRenderMesh(matrix_model, shader_active, mesh_lamp);
+	}
+	wsGraphicsRenderMesh(matrix_model, shader_active, mesh_cube);
 }
 
 // Render lights.
@@ -292,6 +298,7 @@ void wsGraphicsLightsRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_
 			printf("Turning on directionlights...\n");
 		else printf("Turning off directionlights...\n");
 	}
+	wsLightSetRotationd(0, (vec3){sin(glfwGetTime()), cos(glfwGetTime()), sin(glfwGetTime() - 0.5f)});
 	
 	// Draw pointlight cubes.
 	for(unsigned int i = 0; i < WS_MAX_POINTLIGHTS; i++) {
@@ -342,8 +349,7 @@ void wsGraphicsResize() {
 
 void wsGraphicsTerminate() {
 	wsModelTerminate(&cube_model);
-	ojDeleteOBJ(mesh_teapot);
-	ojTerminate();
+	wsObjTerminate();
 	
 	wsTextTerminate();
 	wsDefRenTerminate();

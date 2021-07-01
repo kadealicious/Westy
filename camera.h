@@ -15,7 +15,7 @@ typedef struct wsCameras {
 } wsCamera;
 
 enum EULER_ANGLES { PITCH, YAW, ROLL };
-enum RELATIVE_DIRECTIONS { FORWARD, RIGHT, UP, BACKWARD, LEFT, DOWN };
+enum RELATIVE_DIRECTIONS { RIGHT, UP, FORWARD, LEFT, DOWN, BACKWARD };
 
 struct wsCameras cameras;
 
@@ -23,7 +23,7 @@ unsigned int wsCameraInit(vec3 position, vec3 rotation, float fov);
 
 void wsCameraGenViewMatrix(unsigned int cameraID, mat4 *view_dest);
 void wsCameraMakeFPS(unsigned int cameraID, mat4 *view_dest, float speed, float pitch_constraint);
-void wsCameraFPSMove(unsigned int cameraID, vec3 move_array, float speed);
+void wsCameraMove(unsigned int cameraID, vec3 move_array, float speed);
 void wsCameraMouseMove(unsigned int cameraID, float offsetx, float offsety, float pitch_constraint);
 void wsCameraMouseMoveDamp(unsigned int cameraID, float offsetx, float offsety, float pitch_constraint, float damp);
 

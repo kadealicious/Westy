@@ -73,7 +73,7 @@ void wsDefRenInit() {
 // Perform geometry pass using g-buffer.
 void wsDefRenGeometryPass(mat4 *model, mat4 *view, mat4 *projection, unsigned int cameraID) {
 	glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
-	glClearColor(1.0, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	wsShaderUse(geometry_shader);

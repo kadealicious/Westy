@@ -60,6 +60,7 @@
 		"hash_set": "c",
 		"bitset": "c",
 		"regex": "c",
-		"cglm.h": "c"
+		"cglm.h": "c",
+		"camera.h": "c"
 	}
 }
