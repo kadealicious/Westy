@@ -13,11 +13,14 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
+uniform sampler2D texture_diffuse;
+uniform sampler2D texture_specular;
+
 void main() {
 	vec4 world_pos = model * vec4(a_pos, 1.0);
 	frag_pos = world_pos.xyz;
 	tex_coord = a_tex_coord;
 	normal = normal_matrix * a_normal;
 	
-	gl_Position = projection * view * world_pos;
+	gl_Position = (projection * view * world_pos);
 }

@@ -5,12 +5,15 @@
 #include"globals.h"
 #include"graphics.h"
 #include"input.h"
+#include"exploration.h"
 
 // "Local" variables.
 int monitor_width;
 int monitor_height;
 int win_posx;
 int win_posy;
+
+bool is_paused = false;
 
 GLFWwindow *window;
 GLFWmonitor *monitor_primary;
@@ -41,13 +44,17 @@ int main(int argc, char **argv) {
 
 int wsInit() {
 	printf("---INIT---\n");
+	// Libraries.
 	if(!wsInitGLFW()) return WS_ERROR_GLFW;
 	if(!wsInitGLEW()) return WS_ERROR_GLEW;
 	
+	// Engine.
 	int state = wsGraphicsInit(window);
 	if(state != WS_OKAY) return state;
-	
 	wsInputInit(window, 0.3f);
+	
+	// Game.
+	ExploreInit();
 	
 	printf("---INIT---\n\n");
 	return WS_OKAY;
@@ -145,7 +152,10 @@ int wsRun() {
 		last_time = now_time;
 		
 		// The meat and potatoes!
-		wsGraphicsRender();
+		if(!is_paused) {
+			ExploreUpdate(delta_time);
+		}
+		wsGraphicsRender(is_paused);
 		wsInputUpdate();
 		
 		glfwPollEvents();
@@ -159,13 +169,14 @@ int wsRun() {
 				printf("Switching to windowed mode...\n");
 				glfwSetWindowMonitor(window, NULL, win_posx, win_posy, window_width, window_height, target_fps);
 			}
-		}
+		} else if(wsInputGetPress(GLFW_KEY_ESCAPE))
+			is_paused = !is_paused;
 		
-		if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS || 
+		if(glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS || 
 			glfwWindowShouldClose(window) != 0) {
 				state = WS_QUIT_NORMAL;
 				break;
-		} else if(glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS) {
+		} else if(glfwGetKey(window, GLFW_KEY_F2) == GLFW_PRESS) {
 			state = WS_QUIT_NORMAL_CONSOLE;
 			break;
 		}
@@ -207,8 +218,13 @@ void wsFrameBufferSizeCallback(GLFWwindow *window, int width, int height) {
 int wsQuit(unsigned int app_state) {
 	printf("---QUIT---\n");
 	
+	// Game.
+	ExploreTerminate();
+	
+	// Engine.
 	wsGraphicsTerminate();
 	
+	// Libraries
 	glfwDestroyCursor(cursor);
 	glfwDestroyWindow(window);
 	glfwTerminate();

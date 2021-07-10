@@ -8,10 +8,11 @@
 int wsGraphicsInit();
 
 // Call all render functions in Graphics.
-void wsGraphicsRender();
+void wsGraphicsRender(bool is_paused);
 void wsGraphicsWorldRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_perspective, mat4 *matrix_ortho);
 void wsGraphicsLightsRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_perspective, mat4 *matrix_ortho);
 void wsGraphicsUIRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_perspective, mat4 *matrix_ortho);
+void wsGraphicsPauseUIRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_perspective, mat4 *matrix_ortho);
 
 // Resize window.
 void wsGraphicsResize();

@@ -61,6 +61,8 @@
 		"bitset": "c",
 		"regex": "c",
 		"cglm.h": "c",
-		"camera.h": "c"
+		"camera.h": "c",
+		"light.h": "c",
+		"exploration.h": "c"
 	}
 }

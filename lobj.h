@@ -230,16 +230,15 @@ static int wsObjLoad(const char *path, uint8_t flags) {
 		/* ---------- FACES AND NORMALS ---------- */
 	} else if((flags & WS_NORMALS) && !(flags & WS_TEX)) {
 		char type[2] = {'\0', '\0'};
-		float line_data[9] = {0.0f};
-	
+		float line_data[6] = {0.0f};
+		
+		size_t index_stride = 2;
 		Vec3 *verts_data		= malloc(sizeof(*verts_data) * num_verts);					// Vertex data.
 		Vec3 *vert_normals_data	= malloc(sizeof(*vert_normals_data) * num_vert_normals);	// Vertex normals data.
-		// Vec3 *vert_tex_data		= malloc(sizeof(*vert_tex_data) * num_vert_tex_coords);		// Vertex texture data.
-		Vec3i *indices_data		= malloc((sizeof(*indices_data) * (num_faces * 2)));		// Face/indices data.
+		Vec3i *indices_data		= malloc((sizeof(*indices_data) * (num_faces * index_stride)));		// Face/indices data.
 		
 		size_t verts_ndx = 0;
 		size_t vert_normals_ndx = 0;
-		// size_t vert_tex_ndx = 0;
 		size_t faces_ndx = 0;
 		for(int i = 0; i < num_lines; i++) {
 			if(!feof(file)) {
@@ -256,12 +255,6 @@ static int wsObjLoad(const char *path, uint8_t flags) {
 								vert_normals_data[vert_normals_ndx][2]	= line_data[2];
 								vert_normals_ndx++;
 								break;
-							/* case 't': 
-								vert_tex_data[vert_tex_ndx][0]	= line_data[0];
-								vert_tex_data[vert_tex_ndx][1]	= line_data[1];
-								vert_tex_data[vert_tex_ndx][2]	= line_data[2];
-								vert_tex_ndx++;
-								break; */
 							case ' ': 
 							default: 
 								verts_data[verts_ndx][0]	= line_data[0];
@@ -285,7 +278,7 @@ static int wsObjLoad(const char *path, uint8_t flags) {
 						indices_data[faces_ndx + 1][2]	= (int)line_data[5] - 1;
 						wsObjNormalizeVi(&indices_data[faces_ndx + 1]);
 						
-						faces_ndx += 2;
+						faces_ndx += index_stride;
 						break;
 					
 					default: 
@@ -308,26 +301,130 @@ static int wsObjLoad(const char *path, uint8_t flags) {
 		for(int i = 0; i < num_faces; i++) {
 			for(unsigned int j = 0; j < 3; j++) {
 				// Vertices.
-				cur_mesh_data[mesh_data_ndx + (j * 2)][0]	= verts_data[indices_data[i * 2][j]][0];
-				cur_mesh_data[mesh_data_ndx + (j * 2)][1]	= verts_data[indices_data[i * 2][j]][1];
-				cur_mesh_data[mesh_data_ndx + (j * 2)][2]	= verts_data[indices_data[i * 2][j]][2];
+				cur_mesh_data[mesh_data_ndx + (j * index_stride)][0]	= verts_data[indices_data[i * index_stride][j]][0];
+				cur_mesh_data[mesh_data_ndx + (j * index_stride)][1]	= verts_data[indices_data[i * index_stride][j]][1];
+				cur_mesh_data[mesh_data_ndx + (j * index_stride)][2]	= verts_data[indices_data[i * index_stride][j]][2];
 				// Normals.
-				cur_mesh_data[mesh_data_ndx + (j * 2) + 1][0]	= vert_normals_data[indices_data[(i * 2) + 1][j]][0];
-				cur_mesh_data[mesh_data_ndx + (j * 2) + 1][1]	= vert_normals_data[indices_data[(i * 2) + 1][j]][1];
-				cur_mesh_data[mesh_data_ndx + (j * 2) + 1][2]	= vert_normals_data[indices_data[(i * 2) + 1][j]][2];
+				cur_mesh_data[mesh_data_ndx + (j * index_stride) + 1][0]	= vert_normals_data[indices_data[(i * index_stride) + 1][j]][0];
+				cur_mesh_data[mesh_data_ndx + (j * index_stride) + 1][1]	= vert_normals_data[indices_data[(i * index_stride) + 1][j]][1];
+				cur_mesh_data[mesh_data_ndx + (j * index_stride) + 1][2]	= vert_normals_data[indices_data[(i * index_stride) + 1][j]][2];
 			}
 			mesh_data_ndx += mesh_data_stride;
 		}
 		
 		free(verts_data);
 		free(vert_normals_data);
-		// free(vert_tex_data);
 		free(indices_data);
+		
+		/* ---------- FACES, NORMALS, UV COORDS ---------- */
+		/* ---------- FACES, NORMALS, UV COORDS ---------- */
+		/* ---------- FACES, NORMALS, UV COORDS ---------- */
 	}/* else if(!(flags & WS_NORMALS) && (flags & WS_TEX)) {// TODO: Fix this shit.
 		fscanf(file, "%c%c %f/%f %f/%f %f/%f\n", &type[0], &type[1], &line_data[0], &line_data[3], &line_data[2], &line_data[4], &line_data[3], &line_data[5]);
-	} else if((flags & WS_NORMALS) && (flags & WS_TEX)) {
-		fscanf(file, "%c%c %f/%f/%f %f/%f/%f %f/%f/%f\n", &type[0], &type[1], &line_data[0], &line_data[3], &line_data[6], &line_data[1], &line_data[4], &line_data[7], &line_data[2], &line_data[5], &line_data[8]);
-	} */ else {
+	}*/ else if((flags & WS_NORMALS) && (flags & WS_TEX)) {
+		char type[2] = {'\0', '\0'};
+		float line_data[9] = {0.0f};
+		
+		size_t index_stride = 3;
+		Vec3 *verts_data		= malloc(sizeof(*verts_data) * num_verts);						// Vertex data.
+		Vec3 *vert_normals_data	= malloc(sizeof(*vert_normals_data) * num_vert_normals);		// Vertex normals data.
+		Vec2 *vert_tex_data		= malloc(sizeof(*vert_tex_data) * num_vert_tex_coords);			// Vertex texture data.
+		Vec3i *indices_data		= malloc((sizeof(*indices_data) * (num_faces * index_stride)));	// Face/indices data.
+		
+		size_t verts_ndx = 0;
+		size_t vert_normals_ndx = 0;
+		size_t vert_tex_ndx = 0;
+		size_t faces_ndx = 0;
+		for(int i = 0; i < num_lines; i++) {
+			if(!feof(file)) {
+				// Make sure line is not a comment/of an unrecognized type.
+				// Because vertex and face lines are not similarly formatted, the fscanf() arguments need to change.
+				fscanf(file, "%c%c ", &type[0], &type[1]);
+				switch(type[0]) {
+					case 'v': 
+						fscanf(file, "%f %f %f\n", &line_data[0], &line_data[1], &line_data[2]);
+						// printf("[%c%c] - %f %f %f\n", type[0], type[1], line_data[0], line_data[1], line_data[2]);
+						switch(type[1]) {
+							case 'n': 
+								vert_normals_data[vert_normals_ndx][0]	= line_data[0];
+								vert_normals_data[vert_normals_ndx][1]	= line_data[1];
+								vert_normals_data[vert_normals_ndx][2]	= line_data[2];
+								vert_normals_ndx++;
+								break;
+							case 't': 
+								vert_tex_data[vert_tex_ndx][0]	= line_data[0];
+								vert_tex_data[vert_tex_ndx][1]	= line_data[1];
+								vert_tex_ndx++;
+								break;
+							case ' ': 
+							default: 
+								verts_data[verts_ndx][0]	= line_data[0];
+								verts_data[verts_ndx][1]	= line_data[1];
+								verts_data[verts_ndx][2]	= line_data[2];
+								verts_ndx++;
+								break;
+						}
+						break;
+					case 'f': 
+						// Face indices start at 1 instead of 0; subtract 1 from all indices to fix this.
+						fscanf(file, "%f/%f/%f %f/%f/%f %f/%f/%f\n", &line_data[0], &line_data[1], &line_data[2], &line_data[3], &line_data[4], &line_data[5], &line_data[6], &line_data[7], &line_data[8]);
+						// printf("[%c%c] - %f/%f/%f %f/%f/%f %f/%f/%f\n", type[0], type[1], line_data[0], line_data[1], line_data[2], line_data[3], line_data[4], line_data[5], line_data[6], line_data[7], line_data[8]);
+						
+						// Vertex indices.
+						indices_data[faces_ndx][0]	= (int)line_data[0] - 1;
+						indices_data[faces_ndx][1]	= (int)line_data[3] - 1;
+						indices_data[faces_ndx][2]	= (int)line_data[6] - 1;
+						// Vertex normal indices.
+						indices_data[faces_ndx + 1][0]	= (int)line_data[2] - 1;
+						indices_data[faces_ndx + 1][1]	= (int)line_data[5] - 1;
+						indices_data[faces_ndx + 1][2]	= (int)line_data[8] - 1;
+						wsObjNormalizeVi(&indices_data[faces_ndx + 1]);
+						// Vertex texture indices.
+						indices_data[faces_ndx + 2][0]	= (int)line_data[1] - 1;
+						indices_data[faces_ndx + 2][1]	= (int)line_data[4] - 1;
+						indices_data[faces_ndx + 2][2]	= (int)line_data[7] - 1;
+						
+						faces_ndx += index_stride;
+						break;
+					
+					default: 
+						// Consume the rest of the line so we have no garbage to deal with.
+						while(type[0] != '\n') { type[0] = fgetc(file); }
+						break;
+				}
+			}
+		}
+		fclose(file);
+		
+		// Store 6 Vec3 vertices/normals for each face.
+		const size_t mesh_data_stride = 9;// Stride is 8 because UV coords only have 2 data points instead of 3.
+		meshes.buffer_size[meshID]	= sizeof(*meshes.data[0]) * (num_faces * mesh_data_stride);
+		meshes.data[meshID]			= malloc(meshes.buffer_size[meshID]);
+		Vec3 *cur_mesh_data			= meshes.data[meshID];
+		
+		size_t mesh_data_ndx = 0;
+		for(int i = 0; i < num_faces; i++) {
+			for(unsigned int j = 0; j < 3; j++) {
+				// Vertices.
+				cur_mesh_data[mesh_data_ndx + (j * index_stride)][0]	= verts_data[indices_data[i * index_stride][j]][0];
+				cur_mesh_data[mesh_data_ndx + (j * index_stride)][1]	= verts_data[indices_data[i * index_stride][j]][1];
+				cur_mesh_data[mesh_data_ndx + (j * index_stride)][2]	= verts_data[indices_data[i * index_stride][j]][2];
+				// Normals.
+				cur_mesh_data[mesh_data_ndx + (j * index_stride) + 1][0]	= vert_normals_data[indices_data[(i * index_stride) + 1][j]][0];
+				cur_mesh_data[mesh_data_ndx + (j * index_stride) + 1][1]	= vert_normals_data[indices_data[(i * index_stride) + 1][j]][1];
+				cur_mesh_data[mesh_data_ndx + (j * index_stride) + 1][2]	= vert_normals_data[indices_data[(i * index_stride) + 1][j]][2];
+				// UVs.
+				cur_mesh_data[mesh_data_ndx + (j * index_stride) + 2][0]	= vert_tex_data[indices_data[(i * index_stride) + 2][j]][0];
+				cur_mesh_data[mesh_data_ndx + (j * index_stride) + 2][1]	= vert_tex_data[indices_data[(i * index_stride) + 2][j]][1];
+			}
+			mesh_data_ndx += mesh_data_stride;
+		}
+		
+		free(verts_data);
+		free(vert_normals_data);
+		free(vert_tex_data);
+		free(indices_data);
+	} else {
 		printf("ERROR - Invalid flags passed to wsObjLoad(), aborting load\n");
 		return WS_ERROR_MODEL;
 	}
@@ -363,10 +460,14 @@ static void wsObjGenBuffers(unsigned int meshID, uint8_t flags) {
 	} /* else if((flags & WS_NORMALS) && !(flags & WS_TEX)) {
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
-	} else if((flags & WS_NORMALS) && (flags & WS_TEX)) {
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	} */ else if((flags & WS_NORMALS) && (flags & WS_TEX)) {
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
-	} */
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(6 * sizeof(float)));
+		glEnableVertexAttribArray(2);
+	}
 }
 
 // Remove mesh from memory.

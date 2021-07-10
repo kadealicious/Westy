@@ -48,4 +48,11 @@ void wsShaderUpdateLightf(unsigned int shaderID, unsigned int lightID);
 // Update shader with directional light info.
 void wsShaderUpdateLightd(unsigned int shaderID, unsigned int lightID);
 
+// Update shader with pointlights info.
+void wsShaderUpdateLightsp(unsigned int shaderID);
+// Update shader with spotlights info.
+void wsShaderUpdateLightsf(unsigned int shaderID);
+// Update shader with directional lights info.
+void wsShaderUpdateLightsd(unsigned int shaderID);
+
 #endif

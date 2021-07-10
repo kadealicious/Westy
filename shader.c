@@ -184,6 +184,92 @@ void wsShaderUpdateLightd(unsigned int shaderID, unsigned int lightID) {
 	}
 }
 
+void wsShaderUpdateLightsp(unsigned int shaderID) {
+	char uniform_str[35];
+	for(size_t i = 0; i < WS_MAX_POINTLIGHTS; i++) {
+		sprintf(uniform_str, "pointlights.toggle[%d]", i);
+		wsShaderSetBool(shaderID, uniform_str, pointlights.toggle[i]);
+	}
+	for(size_t i = 0; i < WS_MAX_POINTLIGHTS; i++) {
+		sprintf(uniform_str, "pointlights.position[%d]", i);
+		wsShaderSetVec3(shaderID, uniform_str, pointlights.position[i]);
+	}
+	for(size_t i = 0; i < WS_MAX_POINTLIGHTS; i++) {
+		sprintf(uniform_str, "pointlights.color[%d]", i);
+		wsShaderSetVec3(shaderID, uniform_str, pointlights.color[i]);
+	}
+	for(size_t i = 0; i < WS_MAX_POINTLIGHTS; i++) {
+		sprintf(uniform_str, "pointlights.intensity[%d]", i);
+		wsShaderSetFloat(shaderID, uniform_str, pointlights.intensity[i]);
+	}
+	for(size_t i = 0; i < WS_MAX_POINTLIGHTS; i++) {
+		sprintf(uniform_str, "pointlights.linear[%d]", i);
+		wsShaderSetFloat(shaderID, uniform_str, pointlights.linear[i]);
+	}
+	for(size_t i = 0; i < WS_MAX_POINTLIGHTS; i++) {
+		sprintf(uniform_str, "pointlights.quadratic[%d]", i);
+		wsShaderSetFloat(shaderID, uniform_str, pointlights.quadratic[i]);
+	}
+}
+void wsShaderUpdateLightsf(unsigned int shaderID) {
+	char uniform_str[35];
+	for(size_t i = 0; i < WS_MAX_SPOTLIGHTS; i++) {
+		sprintf(uniform_str, "spotlights.toggle[%d]", i);
+		wsShaderSetBool(shaderID, uniform_str, spotlights.toggle[i]);
+	}
+	for(size_t i = 0; i < WS_MAX_SPOTLIGHTS; i++) {
+		sprintf(uniform_str, "spotlights.position[%d]", i);
+		wsShaderSetVec3(shaderID,  uniform_str, spotlights.position[i]);
+	}
+	for(size_t i = 0; i < WS_MAX_SPOTLIGHTS; i++) {
+		sprintf(uniform_str, "spotlights.rotation[%d]", i);
+		wsShaderSetVec3(shaderID, uniform_str, spotlights.rotation[i]);
+	}
+	for(size_t i = 0; i < WS_MAX_SPOTLIGHTS; i++) {
+		sprintf(uniform_str, "spotlights.color[%d]", i);
+		wsShaderSetVec3(shaderID, uniform_str, spotlights.color[i]);
+	}
+	for(size_t i = 0; i < WS_MAX_SPOTLIGHTS; i++) {
+		sprintf(uniform_str, "spotlights.intensity[%d]", i);
+		wsShaderSetFloat(shaderID, uniform_str, spotlights.intensity[i]);
+	}
+	for(size_t i = 0; i < WS_MAX_SPOTLIGHTS; i++) {
+		sprintf(uniform_str, "spotlights.linear[%d]", i);
+		wsShaderSetFloat(shaderID, uniform_str, spotlights.linear[i]);
+	}
+	for(size_t i = 0; i < WS_MAX_SPOTLIGHTS; i++) {
+		sprintf(uniform_str, "spotlights.quadratic[%d]", i);
+		wsShaderSetFloat(shaderID, uniform_str, spotlights.quadratic[i]);
+	}
+	for(size_t i = 0; i < WS_MAX_SPOTLIGHTS; i++) {
+		sprintf(uniform_str, "spotlights.cutoff[%d]", i);
+		wsShaderSetFloat(shaderID, uniform_str, spotlights.cutoff[i]);
+	}
+	for(size_t i = 0; i < WS_MAX_SPOTLIGHTS; i++) {
+		sprintf(uniform_str, "spotlights.outer_cutoff[%d]", i);
+		wsShaderSetFloat(shaderID, uniform_str, spotlights.outer_cutoff[i]);
+	}
+}
+void wsShaderUpdateLightsd(unsigned int shaderID) {
+	char uniform_str[35];
+	for(size_t i = 0; i < WS_MAX_DIRECTIONLIGHTS; i++) {
+		sprintf(uniform_str, "directionlights.toggle[%d]", i);
+		wsShaderSetBool(shaderID, uniform_str, directionlights.toggle[i]);
+	}
+	for(size_t i = 0; i < WS_MAX_DIRECTIONLIGHTS; i++) {
+		sprintf(uniform_str, "directionlights.rotation[%d]", i);
+		wsShaderSetVec3(shaderID, uniform_str, directionlights.rotation[i]);
+	}
+	for(size_t i = 0; i < WS_MAX_DIRECTIONLIGHTS; i++) {
+		sprintf(uniform_str, "directionlights.color[%d]", i);
+		wsShaderSetVec3(shaderID, uniform_str, directionlights.color[i]);
+	}
+	for(size_t i = 0; i < WS_MAX_DIRECTIONLIGHTS; i++) {
+		sprintf(uniform_str, "directionlights.intensity[%d]", i);
+		wsShaderSetFloat(shaderID, uniform_str, directionlights.intensity[i]);
+	}
+}
+
 void wsShaderDelete(unsigned int *shaderID) {
 	glDeleteProgram(*shaderID);
 	*shaderID = WS_NONE;

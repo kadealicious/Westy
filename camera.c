@@ -28,6 +28,9 @@ unsigned int wsCameraInit(vec3 position, vec3 rotation, float fov) {
 	return num_cameras++;
 }
 
+unsigned int wsCameraGetActive() { return cameras.active; }
+void wsCameraSetActive(unsigned int cameraID) { cameras.active = cameraID; }
+
 void wsCameraGenViewMatrix(unsigned int cameraID, mat4 *view_dest) {
 	vec3 lookat;
 	glm_vec3_add(cameras.position[cameraID], cameras.rotation[cameraID], lookat);
@@ -115,10 +118,6 @@ void wsCameraMove(unsigned int cameraID, vec3 move_array, float speed) {
 	glm_vec3_scale(move_vector_temp, speed * move_array[RIGHT], move_vector_temp);
 	glm_vec3_add(move_vector_temp, move_vector, move_vector);
 	
-	// Fly camera up and down.
-	// glm_vec3_scale(cameras.up[cameraID], speed * move_array[2], move_vector_temp);
-	// glm_vec3_add(move_vector_temp, move_vector, move_vector);
-	
 	// Head bob.
 	static float head_bob = 0.0f;
 	float head_bob_target = ((sin(glfwGetTime() * 20) + 1) * 0.025f);
@@ -139,8 +138,35 @@ void wsCameraMove(unsigned int cameraID, vec3 move_array, float speed) {
 	// The shit that makes you go places.
 	glm_vec3_add(cameras.position[cameraID], move_vector, cameras.position[cameraID]);
 }
+void wsCameraFly(unsigned int cameraID, vec3 move_array, float speed) {
+	vec3 move_vector = {0};
+	vec3 move_vector_temp = {0};
+	
+	speed *= delta_time;
+	
+	// Forward and backward
+	glm_vec3_copy(cameras.rotation[cameraID], move_vector_temp);
+	move_vector_temp[UP] = 0.0f;
+	glm_normalize(move_vector_temp);
+	glm_vec3_scale(move_vector_temp, speed * move_array[FORWARD], move_vector_temp);
+	glm_vec3_add(move_vector_temp, move_vector, move_vector);
+	
+	// Left and right
+	glm_vec3_copy(cameras.right[cameraID], move_vector_temp);
+	move_vector_temp[UP] = 0.0f;
+	glm_normalize(move_vector_temp);
+	glm_vec3_scale(move_vector_temp, speed * move_array[RIGHT], move_vector_temp);
+	glm_vec3_add(move_vector_temp, move_vector, move_vector);
+	
+	// Fly camera up and down.
+	glm_vec3_scale(cameras.up[cameraID], speed * move_array[UP], move_vector_temp);
+	glm_vec3_add(move_vector_temp, move_vector, move_vector);
+	
+	// The shit that makes you go places.
+	glm_vec3_add(cameras.position[cameraID], move_vector, cameras.position[cameraID]);
+}
 
-void wsCameraMakeFPS(unsigned int cameraID, mat4 *view_dest, float speed, float pitch_constraint) {
+void wsCameraMakeFPS(unsigned int cameraID, float speed, float pitch_constraint) {
 	vec3 move_array = {0};
 	static bool is_fly_camera = false;
 	
@@ -162,5 +188,26 @@ void wsCameraMakeFPS(unsigned int cameraID, mat4 *view_dest, float speed, float 
 	
 	wsCameraMove(cameraID, move_array, speed);
 	wsCameraMouseMoveDamp(cameraID, wsInputGetMouseMoveX() / 3.0, wsInputGetMouseMoveY() / 3.0, pitch_constraint, 25.0f);
-	wsCameraGenViewMatrix(cameraID, view_dest);
+	// wsCameraGenViewMatrix(cameraID, view_dest);
+}
+void wsCameraMakeFly(unsigned int cameraID, float speed, float pitch_constraint) {
+	vec3 move_array = {0};
+	static bool is_fly_camera = false;
+	
+	if(wsInputGetHold(GLFW_KEY_W) || wsInputGetHold(GLFW_KEY_UP))
+		move_array[FORWARD]++;
+	if(wsInputGetHold(GLFW_KEY_S) || wsInputGetHold(GLFW_KEY_DOWN))
+		move_array[FORWARD]--;
+	if(wsInputGetHold(GLFW_KEY_A) || wsInputGetHold(GLFW_KEY_LEFT))
+		move_array[RIGHT]--;
+	if(wsInputGetHold(GLFW_KEY_D) || wsInputGetHold(GLFW_KEY_RIGHT))
+		move_array[RIGHT]++;
+	if(wsInputGetHold(GLFW_KEY_SPACE))
+		move_array[UP]++;
+	if(wsInputGetHold(GLFW_KEY_LEFT_CONTROL))
+		move_array[UP]--;
+	
+	wsCameraFly(cameraID, move_array, speed);
+	wsCameraMouseMoveDamp(cameraID, wsInputGetMouseMoveX() / 3.0, wsInputGetMouseMoveY() / 3.0, pitch_constraint, 25.0f);
+	// wsCameraGenViewMatrix(cameraID, view_dest);
 }
