@@ -5,58 +5,47 @@
 #include<stdlib.h>
 
 #include"globals.h"
+#include"texturing.h"
 
-// TODO: Bitwise or to compare these and use them as options for the loader.  I would like to be able to parse .obj files with everything from just verts to verts, normals, texture coords, etc..
-#define WS_MAX_MESHES			50
-
-#define WS_FACES		0x01
-#define WS_TEX			0x02
-#define WS_NORMALS		0x04
-
+/* --- WAVEFRONT .OBJ LOADING --- */
 // Structs for easy mesh data manipulation.
 typedef float	Vec3[3];
 typedef int		Vec3i[3];
 typedef float	Vec2[2];
 // Holds data for all meshes currently in memory.  Do not interface with this directly.
-typedef struct wsObjMeshes {
+typedef struct wsMeshes {
 	unsigned int num_verts[WS_MAX_MESHES];	// Number of vertices.
 	unsigned int num_faces[WS_MAX_MESHES];	// Number of faces/indies.
 	unsigned int vbo[WS_MAX_MESHES];		// OpenGL VBO.
 	unsigned int vao[WS_MAX_MESHES];		// OpenGL VAO.
 	unsigned int buffer_size[WS_MAX_MESHES];// Mesh data buffer size.
+	unsigned int textureID[WS_MAX_MESHES];	// Texture container ID.
 	unsigned int num_meshes;				// Total # of meshes.
 	unsigned int next_meshID;				// Next usable meshID.
 	Vec3 *data[WS_MAX_MESHES];				// Sorted mesh data for each mesh.
-} wsObjMeshes;
+} wsMeshes;
 
-// Main instance of wsObjMeshes.
-wsObjMeshes meshes;
+// Main instance of wsMeshes.
+wsMeshes meshes;
 
 // Stubs.
-static void wsObjInit();
-static int wsObjLoad(const char *path, uint8_t flags);
-static void wsObjGenBuffers(unsigned int meshID, uint8_t flags);
-static void wsObjDelete(unsigned int meshID);
-static void wsObjTerminate();
+static int wsMeshLoadOBJ(const char *path, uint8_t flags);
+static void wsMeshGenBuffers(unsigned int meshID, uint8_t flags);
+static void wsMeshDelete(unsigned int meshID);
+
+static void wsLOBJInit();
+static void wsLOBJTerminate();
 
 // Getters.
-static unsigned int wsObjGetVAO(unsigned int meshID)		{ return meshes.vao[meshID]; }			// Get meshID's VAO.
-static unsigned int wsObjGetVBO(unsigned int meshID)		{ return meshes.vbo[meshID]; }			// Get meshID's VBO.
-static unsigned int wsObjGetNumVerts(unsigned int meshID)	{ return meshes.num_verts[meshID]; }	// Get meshID's vertex count.
-static unsigned int wsObjGetNumFaces(unsigned int meshID)	{ return meshes.num_faces[meshID]; }	// Get meshID's face count.
-static unsigned int wsObjGetBufferSize(unsigned int meshID)	{ return meshes.buffer_size[meshID]; }	// Get meshID's data buffer size.
-static unsigned int wsObjGetNumMeshes()						{ return meshes.num_meshes; }			// Get the total number of meshes.
-
-// Initialize lobj.  Call this before any mesh initialization.
-static void wsObjInit() {
-	meshes.num_meshes	= 0;
-	meshes.next_meshID	= 0;
-	printf("lobj initialized\n");
-}
+static unsigned int wsMeshGetVAO(unsigned int meshID)		{ return meshes.vao[meshID]; }			// Get meshID's VAO.
+static unsigned int wsMeshGetVBO(unsigned int meshID)		{ return meshes.vbo[meshID]; }			// Get meshID's VBO.
+static unsigned int wsMeshGetNumVerts(unsigned int meshID)	{ return meshes.num_verts[meshID]; }	// Get meshID's vertex count.
+static unsigned int wsMeshGetNumFaces(unsigned int meshID)	{ return meshes.num_faces[meshID]; }	// Get meshID's face count.
+static unsigned int wsMeshGetBufferSize(unsigned int meshID)	{ return meshes.buffer_size[meshID]; }	// Get meshID's data buffer size.
+static unsigned int wsMeshGetNumMeshes()						{ return meshes.num_meshes; }			// Get the total number of meshes.
 
 // Normalizes Vec3 v.
-
-static void wsObjNormalizeV(Vec3 *v) {
+static void wsMeshNormalizeV(Vec3 *v) {
 	// TODO: Scale vertex normal coords like so: vn * (1.0f / sqrt(dot(vn, vn)))).
 	Vec3 v_norm;
 	v_norm[0] = *v[0];
@@ -68,7 +57,7 @@ static void wsObjNormalizeV(Vec3 *v) {
 	v_norm[1] /= v_norm_dot;
 	v_norm[2] /= v_norm_dot;
 }
-static void wsObjNormalizeVi(Vec3i *v) {
+static void wsMeshNormalizeVi(Vec3i *v) {
 	// TODO: Scale vertex normal coords like so: vn * (1.0f / sqrt(dot(vn, vn)))).
 	Vec3 v_norm;
 	v_norm[0] = *v[0];
@@ -87,8 +76,8 @@ static void wsObjNormalizeVi(Vec3i *v) {
 	WS_TEX		- File contains texture coordinates.
 	WS_NORMALS	- File contains vertex normal data.
  */
-static int wsObjLoad(const char *path, uint8_t flags) {
-	bool verbose = true;
+static int wsMeshLoadOBJ(const char *path, uint8_t flags) {
+	bool verbose = false;
 	const unsigned int meshID = meshes.next_meshID;
 	
 	FILE *file;
@@ -276,7 +265,7 @@ static int wsObjLoad(const char *path, uint8_t flags) {
 						indices_data[faces_ndx + 1][0]	= (int)line_data[1] - 1;
 						indices_data[faces_ndx + 1][1]	= (int)line_data[3] - 1;
 						indices_data[faces_ndx + 1][2]	= (int)line_data[5] - 1;
-						wsObjNormalizeVi(&indices_data[faces_ndx + 1]);
+						wsMeshNormalizeVi(&indices_data[faces_ndx + 1]);
 						
 						faces_ndx += index_stride;
 						break;
@@ -319,7 +308,7 @@ static int wsObjLoad(const char *path, uint8_t flags) {
 		/* ---------- FACES, NORMALS, UV COORDS ---------- */
 		/* ---------- FACES, NORMALS, UV COORDS ---------- */
 		/* ---------- FACES, NORMALS, UV COORDS ---------- */
-	}/* else if(!(flags & WS_NORMALS) && (flags & WS_TEX)) {// TODO: Fix this shit.
+	}/* else if(!(flags & WS_NORMALS) && (flags & WS_TEX)) {// TODO: Finish this shit.
 		fscanf(file, "%c%c %f/%f %f/%f %f/%f\n", &type[0], &type[1], &line_data[0], &line_data[3], &line_data[2], &line_data[4], &line_data[3], &line_data[5]);
 	}*/ else if((flags & WS_NORMALS) && (flags & WS_TEX)) {
 		char type[2] = {'\0', '\0'};
@@ -378,7 +367,7 @@ static int wsObjLoad(const char *path, uint8_t flags) {
 						indices_data[faces_ndx + 1][0]	= (int)line_data[2] - 1;
 						indices_data[faces_ndx + 1][1]	= (int)line_data[5] - 1;
 						indices_data[faces_ndx + 1][2]	= (int)line_data[8] - 1;
-						wsObjNormalizeVi(&indices_data[faces_ndx + 1]);
+						wsMeshNormalizeVi(&indices_data[faces_ndx + 1]);
 						// Vertex texture indices.
 						indices_data[faces_ndx + 2][0]	= (int)line_data[1] - 1;
 						indices_data[faces_ndx + 2][1]	= (int)line_data[4] - 1;
@@ -425,12 +414,12 @@ static int wsObjLoad(const char *path, uint8_t flags) {
 		free(vert_tex_data);
 		free(indices_data);
 	} else {
-		printf("ERROR - Invalid flags passed to wsObjLoad(), aborting load\n");
+		printf("ERROR - Invalid flags passed to wsMeshLoad(), aborting load\n");
 		return WS_ERROR_MODEL;
 	}
 	
 	// Generate our OpenGL VBO and VAO.
-	wsObjGenBuffers(meshID, flags);
+	wsMeshGenBuffers(meshID, flags);
 	
 	// Yay!
 	printf("\'%s\' load success\n", path);
@@ -440,8 +429,8 @@ static int wsObjLoad(const char *path, uint8_t flags) {
 	return meshID;
 }
 
-// Generate OpenGL VAO and VBO for the given mesh.  Automatically called in wsObjLoad().
-static void wsObjGenBuffers(unsigned int meshID, uint8_t flags) {
+// Generate OpenGL VAO and VBO for the given mesh.  Automatically called in wsMeshLoad().
+static void wsMeshGenBuffers(unsigned int meshID, uint8_t flags) {
 	glGenBuffers(1, &meshes.vbo[meshID]);
 	glBindBuffer(GL_ARRAY_BUFFER, meshes.vbo[meshID]);
 	glBufferData(GL_ARRAY_BUFFER, meshes.buffer_size[meshes.num_meshes], meshes.data[meshID], GL_STATIC_DRAW);
@@ -471,19 +460,29 @@ static void wsObjGenBuffers(unsigned int meshID, uint8_t flags) {
 }
 
 // Remove mesh from memory.
-static void wsObjDelete(unsigned int meshID) {
+static void wsMeshDelete(unsigned int meshID) {
 	meshes.num_verts[meshID] = 0;
 	meshes.num_faces[meshID] = 0;
 	meshes.num_meshes--;
-	free(meshes.data[meshID]);// TODO: Only delete meshID's data.  Still need to figure that one out.  Save that one for a rainy day.  Or for whenever I figure the rest of this shit out.
+	free(meshes.data[meshID]);
+}
+/* --- WAVEFRONT .OBJ LOADING --- */
+
+// Initialize lobj.  Call this before any mesh initialization.
+static void wsLOBJInit() {
+	meshes.num_meshes	= 0;
+	meshes.next_meshID	= 0;
+	
+	printf("lobj initialized\n");
 }
 
 // Remove all meshes from memory.
-static void wsObjTerminate() {
+static void wsLOBJTerminate() {
 	if(meshes.num_meshes > 0) {
 		for(size_t i = 0; i < meshes.num_meshes; i++) {
 			free(meshes.data[i]);
 		}
+		meshes.num_meshes = 0;
 	}
 }
 

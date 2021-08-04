@@ -26,12 +26,20 @@
 #define WS_MAX_SPOTLIGHTS 25
 #define WS_MAX_DIRECTIONLIGHTS 5
 
-#define WS_MAX_MESHES 50
+#define WS_MAX_MESHES	50
+#define WS_MAX_TEXTURES	50
 
-// Max index of possible chars.  Using ASCII because fuck it.
+#define WS_FACES		0x01
+#define WS_TEX			0x02
+#define WS_NORMALS		0x04
+
+#define WS_MAX_CREATURES	50
+#define WS_MAX_OBJS			150
+#define WS_MAX_ENVS			4
+
 #define WS_NUM_CHARS 128
 
-enum WS_STATES { WS_NONE, WS_OKAY, WS_QUIT_NORMAL, WS_QUIT_NORMAL_CONSOLE, WS_ERROR_GLFW, WS_ERROR_GLEW, 
+enum WS_STATES { WS_NONE = -INT_MAX, WS_OKAY, WS_QUIT_NORMAL, WS_QUIT_NORMAL_CONSOLE, WS_ERROR_GLFW, WS_ERROR_GLEW, 
 	WS_ERROR_FREETYPE, WS_ERROR_FILE, WS_ERROR_MODEL, WS_ERROR_UNKNOWN };
 
 extern const vec3 WS_WORLD_UP;
@@ -44,7 +52,7 @@ extern int screen_width;
 extern int screen_height;
 extern unsigned int target_fps;
 extern float delta_time;
-
+extern bool is_paused;
 
 float wsInterpf(float num0, float num1, float interp);		// Returns a float from 0.0f-[range of num0 - num1].
 double wsInterpd(double num0, double num1, float interp);	// Returns a double from 0.0-[range of num0 - num1].

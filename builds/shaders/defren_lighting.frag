@@ -42,6 +42,8 @@ uniform PointLights pointlights;
 uniform SpotLights spotlights;
 uniform DirectionLights directionlights;
 
+uniform float time;
+
 out vec4 frag_color;
 
 // Lighting.
@@ -66,9 +68,13 @@ vec3 light_color = albedo_sample * 0.01;
 vec3 view_dir = normalize(view_pos - frag_pos_sample);
 
 void main() {
+	vec3 sky_color = vec3(0.0);
 	for(uint i = 0; i < MAX_POINTLIGHTS; i++)		{ light_color += CalculatePointLight(i); }
 	for(uint i = 0; i < MAX_SPOTLIGHTS; i++)		{ light_color += CalculateSpotLight(i); }
-	for(uint i = 0; i < MAX_DIRECTIONLIGHTS; i++)	{ light_color += CalculateDirectionLight(i); }
+	for(uint i = 0; i < MAX_DIRECTIONLIGHTS; i++) {
+		light_color += CalculateDirectionLight(i);
+		sky_color += directionlights.color[i] * directionlights.intensity[i] * directionlights.toggle[i] * 0.2;
+	}
 	
 	// Increase light color fragment;
 	float light_color_magnitude;
@@ -89,7 +95,10 @@ void main() {
 	dither_color.g = BayerFindClosest(xdither, ydither, light_color.g);
 	dither_color.b = BayerFindClosest(xdither, ydither, light_color.b);
 	
-	frag_color = vec4(dither_color, 1.0);
+	float specular_color = max(spec_sample * 4, 0.2);
+	
+	vec3 final_color = mix(dither_color * specular_color, sky_color, floor(specular_color));
+	frag_color = vec4(final_color, 1.0);
 }
 
 // Point lights.
@@ -179,7 +188,7 @@ vec3 HSVtoRGB(in vec3 HSV)
 }
 
 // Dithering algorithm.
-float BayerFindClosest(int x, int y, float col) {
+float BayerFindClosest(int x, int y, float color) {
 	int dither[8][8] = {
 		{0, 32, 8, 40, 2, 34, 10, 42},		// 8x8 Bayer ordered dithering 
 		{48, 16, 56, 24, 50, 18, 58, 26},	// pattern. Each input pixel 
@@ -192,9 +201,7 @@ float BayerFindClosest(int x, int y, float col) {
 	};
 	
 	float limit = (dither[x][y] + 1) / 64.0f;
-	if(col < limit)
-		return 0.0;
-	return 1.0;
+	return clamp(ceil(color - limit), 0.0, 1.0);
 }
 
 /*// SSAO.

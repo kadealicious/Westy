@@ -125,65 +125,6 @@ void wsShaderSetNormalMatrix(unsigned int shaderID, mat4 *model) {
 	wsShaderSetMat3(shaderID, "normal_matrix", &normal3);	
 }
 
-void wsShaderUpdateLightp(unsigned int shaderID, unsigned int lightID) {
-	char uniform_str[35];
-	sprintf(uniform_str, "pointlights.toggle[%d]", lightID);
-	wsShaderSetBool(shaderID, uniform_str, pointlights.toggle[lightID]);
-	
-	if(pointlights.toggle[lightID]) {
-		char uniform_str[35];
-		
-		sprintf(uniform_str, "pointlights.position[%d]", lightID);
-		wsShaderSetVec3(shaderID, uniform_str, pointlights.position[lightID]);
-		sprintf(uniform_str, "pointlights.color[%d]", lightID);
-		wsShaderSetVec3(shaderID, uniform_str, pointlights.color[lightID]);
-		sprintf(uniform_str, "pointlights.intensity[%d]", lightID);
-		wsShaderSetFloat(shaderID, uniform_str, pointlights.intensity[lightID]);
-		sprintf(uniform_str, "pointlights.linear[%d]", lightID);
-		wsShaderSetFloat(shaderID, uniform_str, pointlights.linear[lightID]);
-		sprintf(uniform_str, "pointlights.quadratic[%d]", lightID);
-		wsShaderSetFloat(shaderID, uniform_str, pointlights.quadratic[lightID]);
-	}
-}
-void wsShaderUpdateLightf(unsigned int shaderID, unsigned int lightID) {
-	char uniform_str[35];
-	sprintf(uniform_str, "spotlights.toggle[%d]", lightID);
-	wsShaderSetBool(shaderID, uniform_str, spotlights.toggle[lightID]);
-	
-	if(spotlights.toggle[lightID]) {
-		sprintf(uniform_str, "spotlights.position[%d]", lightID);
-		wsShaderSetVec3(shaderID,  uniform_str, spotlights.position[lightID]);
-		sprintf(uniform_str, "spotlights.rotation[%d]", lightID);
-		wsShaderSetVec3(shaderID, uniform_str, spotlights.rotation[lightID]);
-		sprintf(uniform_str, "spotlights.color[%d]", lightID);
-		wsShaderSetVec3(shaderID, uniform_str, spotlights.color[lightID]);
-		sprintf(uniform_str, "spotlights.intensity[%d]", lightID);
-		wsShaderSetFloat(shaderID, uniform_str, spotlights.intensity[lightID]);
-		sprintf(uniform_str, "spotlights.linear[%d]", lightID);
-		wsShaderSetFloat(shaderID, uniform_str, spotlights.linear[lightID]);
-		sprintf(uniform_str, "spotlights.quadratic[%d]", lightID);
-		wsShaderSetFloat(shaderID, uniform_str, spotlights.quadratic[lightID]);
-		sprintf(uniform_str, "spotlights.cutoff[%d]", lightID);
-		wsShaderSetFloat(shaderID, uniform_str, spotlights.cutoff[lightID]);
-		sprintf(uniform_str, "spotlights.outer_cutoff[%d]", lightID);
-		wsShaderSetFloat(shaderID, uniform_str, spotlights.outer_cutoff[lightID]);
-	}
-}
-void wsShaderUpdateLightd(unsigned int shaderID, unsigned int lightID) {
-	char uniform_str[35];
-	sprintf(uniform_str, "directionlights.toggle[%d]", lightID);
-	wsShaderSetBool(shaderID, uniform_str, directionlights.toggle[lightID]);
-	
-	if(directionlights.toggle[lightID]) {
-		sprintf(uniform_str, "directionlights.rotation[%d]", lightID);
-		wsShaderSetVec3(shaderID, uniform_str, directionlights.rotation[lightID]);
-		sprintf(uniform_str, "directionlights.color[%d]", lightID);
-		wsShaderSetVec3(shaderID, uniform_str, directionlights.color[lightID]);
-		sprintf(uniform_str, "directionlights.intensity[%d]", lightID);
-		wsShaderSetFloat(shaderID, uniform_str, directionlights.intensity[lightID]);
-	}
-}
-
 void wsShaderUpdateLightsp(unsigned int shaderID) {
 	char uniform_str[35];
 	for(size_t i = 0; i < WS_MAX_POINTLIGHTS; i++) {

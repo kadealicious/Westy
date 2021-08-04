@@ -13,9 +13,6 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
-uniform sampler2D texture_diffuse;
-uniform sampler2D texture_specular;
-
 void main() {
 	vec4 world_pos = model * vec4(a_pos, 1.0);
 	frag_pos = world_pos.xyz;

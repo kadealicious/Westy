@@ -19,7 +19,4 @@ void wsGraphicsResize();
 // Free stuff.
 void wsGraphicsTerminate();
 
-// Load a texture using the stbi lib.
-void wsGraphicsLoadTexture(const char *path, unsigned int *dest_texture, unsigned int wrap_style, unsigned int filter_style);
-
 #endif

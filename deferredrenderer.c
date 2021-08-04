@@ -21,7 +21,7 @@ void wsDefRenInit() {
 	glGenFramebuffers(1, &g_buffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
 	
-	// Create and bind position buffer as GL_TEXTURE_2D.
+	// Create and bind position buffer as GL_TEXTURE_2D.  Alpha in this texture is used to determine if anything exists at this spot.
 	glGenTextures(1, &g_position);
 	glBindTexture(GL_TEXTURE_2D, g_position);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, screen_width, screen_height, 0, GL_RGB, GL_FLOAT, NULL);
@@ -93,10 +93,12 @@ void wsDefRenLightPass(unsigned int cameraID) {
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, g_albedospec);
 	
+	// Update all lights.
+	wsShaderSetFloat(lighting_shader, "time", glfwGetTime());
 	wsShaderSetVec3(lighting_shader, "view_position", cameras.position[cameraID]);
-	for(unsigned int i = 0; i < WS_MAX_POINTLIGHTS; i++)		{ wsShaderUpdateLightp(lighting_shader, i); }
-	for(unsigned int i = 0; i < WS_MAX_SPOTLIGHTS; i++)			{ wsShaderUpdateLightf(lighting_shader, i); }
-	for(unsigned int i = 0; i < WS_MAX_DIRECTIONLIGHTS; i++)	{ wsShaderUpdateLightd(lighting_shader, i); }
+	wsShaderUpdateLightsp(wsShaderGetActive());
+	wsShaderUpdateLightsf(wsShaderGetActive());
+	wsShaderUpdateLightsd(wsShaderGetActive());
 	
 	// Render the quad to the screen.
 	wsDefRenRenderQuad();

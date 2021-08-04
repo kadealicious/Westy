@@ -2,18 +2,21 @@
 #include<windows.h>
 #include<stdbool.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include"stb_image.h"
+
 #include"globals.h"
+#include"multithreading.h"
 #include"graphics.h"
 #include"input.h"
 #include"exploration.h"
+#include"entities.h"
 
 // "Local" variables.
 int monitor_width;
 int monitor_height;
 int win_posx;
 int win_posy;
-
-bool is_paused = false;
 
 GLFWwindow *window;
 GLFWmonitor *monitor_primary;
@@ -48,13 +51,17 @@ int wsInit() {
 	if(!wsInitGLFW()) return WS_ERROR_GLFW;
 	if(!wsInitGLEW()) return WS_ERROR_GLEW;
 	
-	// Engine.
+	// Engine/Game.
+	wsThreadingInit();
+	
+	// OpenGL handles textures upside down.
+	stbi_set_flip_vertically_on_load(true);
 	int state = wsGraphicsInit(window);
 	if(state != WS_OKAY) return state;
-	wsInputInit(window, 0.3f);
 	
-	// Game.
-	ExploreInit();
+	wsInputInit(window, 0.3f);
+	wsEntitiesInit();
+	wsExploreInit();
 	
 	printf("---INIT---\n\n");
 	return WS_OKAY;
@@ -151,13 +158,10 @@ int wsRun() {
 		delta_time = now_time - last_time;
 		last_time = now_time;
 		
-		// The meat and potatoes!
-		if(!is_paused) {
-			ExploreUpdate(delta_time);
-		}
+		// TODO: MAKE THIS PART MULTITHREADED.
+		wsExploreUpdate(delta_time);
 		wsGraphicsRender(is_paused);
 		wsInputUpdate();
-		
 		glfwPollEvents();
 		glfwSwapBuffers(window);
 		
@@ -218,11 +222,10 @@ void wsFrameBufferSizeCallback(GLFWwindow *window, int width, int height) {
 int wsQuit(unsigned int app_state) {
 	printf("---QUIT---\n");
 	
-	// Game.
-	ExploreTerminate();
-	
-	// Engine.
+	wsExploreTerminate();
+	wsEntitiesTerminate();
 	wsGraphicsTerminate();
+	wsThreadingTerminate();
 	
 	// Libraries
 	glfwDestroyCursor(cursor);

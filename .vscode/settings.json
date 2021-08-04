@@ -63,6 +63,10 @@
 		"cglm.h": "c",
 		"camera.h": "c",
 		"light.h": "c",
-		"exploration.h": "c"
+		"exploration.h": "c",
+		"entities.h": "c",
+		"stb_image.h": "c",
+		"texturing.h": "c",
+		"multithreading.h": "c"
 	}
 }

@@ -1,18 +1,22 @@
 CC=gcc
 CFLAGS=-std=c99 -MMD
 LIB=-lmingw32 -lglfw3dll -lopengl32 -lfreetype6
-DEPS=globals.h graphics.h deferredrenderer.h shader.h input.h camera.h model.h material.h light.h text.h lobj.h exploration.h
-OBJ=globals.o main.o graphics.o deferredrenderer.o shader.o input.o camera.o model.o material.o light.o text.o glew.o exploration.o
+DEPS=globals.h graphics.h deferredrenderer.h shader.h input.h camera.h light.h text.h entities.h texturing.h lobj.h exploration.h multithreading.h
+OBJ=globals.o main.o graphics.o deferredrenderer.o shader.o input.o camera.o light.o text.o entities.o glew.o exploration.o multithreading.o
 
 all: a
 
+headerlibs.o: lobj.h texturing.h
+	$(CC) $(CFLAGS) -c %^
 main.o: main.c
 	$(CC) $(CFLAGS) -c $^
 glew.o: glew.c
 	$(CC) $(CFLAGS) -c $^
 globals.o: globals.c globals.h
 	$(CC) $(CFLAGS) -c $^
-graphics.o: graphics.c graphics.h lobj.h
+multithreading.o: multithreading.c multithreading.h
+	$(CC) $(CFLAGS) -c $^
+graphics.o: graphics.c graphics.h
 	$(CC) $(CFLAGS) -c $^
 deferredrenderer.o: deferredrenderer.c deferredrenderer.h
 	$(CC) $(CFLAGS) -c $^
@@ -22,13 +26,11 @@ input.o: input.c input.h
 	$(CC) $(CFLAGS) -c $^
 camera.o: camera.c camera.h
 	$(CC) $(CFLAGS) -c $^
-model.o: model.c model.h
-	$(CC) $(CFLAGS) -c $^
-material.o: material.c material.h
-	$(CC) $(CFLAGS) -c $^
 light.o: light.c light.h
 	$(CC) $(CFLAGS) -c $^
 text.o: text.c text.h
+	$(CC) $(CFLAGS) -c $^
+entities.o: entities.c entities.h
 	$(CC) $(CFLAGS) -c $^
 
 exploration.o: exploration.c exploration.h

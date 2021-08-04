@@ -10,6 +10,7 @@ int screen_width	= 640;
 int screen_height	= 480;
 unsigned int target_fps = 60;
 float delta_time = 1.0f;
+bool is_paused = false;
 
 float wsInterpf(float num0, float num1, float interp)		{ return (num1 - num0) * interp; }
 double wsInterpd(double num0, double num1, float interp)	{ return (num1 - num0) * interp; }

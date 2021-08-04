@@ -41,13 +41,6 @@ void wsShaderSetMVP(unsigned int shaderID, mat4 *model, mat4 *view, mat4 *projec
 // Update shader's matrix_normal.
 void wsShaderSetNormalMatrix(unsigned int shaderID, mat4 *model);
 
-// Update shader with pointlight info.
-void wsShaderUpdateLightp(unsigned int shaderID, unsigned int lightID);
-// Update shader with spotlight info.
-void wsShaderUpdateLightf(unsigned int shaderID, unsigned int lightID);
-// Update shader with directional light info.
-void wsShaderUpdateLightd(unsigned int shaderID, unsigned int lightID);
-
 // Update shader with pointlights info.
 void wsShaderUpdateLightsp(unsigned int shaderID);
 // Update shader with spotlights info.
