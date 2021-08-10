@@ -14,14 +14,14 @@ typedef int		Vec3i[3];
 typedef float	Vec2[2];
 // Holds data for all meshes currently in memory.  Do not interface with this directly.
 typedef struct wsMeshes {
+	bool availableIDs[WS_MAX_TEXTURES];
+	unsigned int num_meshes;
 	unsigned int num_verts[WS_MAX_MESHES];	// Number of vertices.
 	unsigned int num_faces[WS_MAX_MESHES];	// Number of faces/indies.
 	unsigned int vbo[WS_MAX_MESHES];		// OpenGL VBO.
 	unsigned int vao[WS_MAX_MESHES];		// OpenGL VAO.
 	unsigned int buffer_size[WS_MAX_MESHES];// Mesh data buffer size.
 	unsigned int textureID[WS_MAX_MESHES];	// Texture container ID.
-	unsigned int num_meshes;				// Total # of meshes.
-	unsigned int next_meshID;				// Next usable meshID.
 	Vec3 *data[WS_MAX_MESHES];				// Sorted mesh data for each mesh.
 } wsMeshes;
 
@@ -77,8 +77,16 @@ static void wsMeshNormalizeVi(Vec3i *v) {
 	WS_NORMALS	- File contains vertex normal data.
  */
 static int wsMeshLoadOBJ(const char *path, uint8_t flags) {
-	bool verbose = false;
-	const unsigned int meshID = meshes.next_meshID;
+	// bool verbose = false;
+	// Get a valid ID for this mesh.
+	unsigned int meshID;
+	for(size_t i = 0; i < WS_MAX_OBJS; i++) {
+		if(meshes.availableIDs[i] == true) {
+			meshID = i;
+			meshes.availableIDs[i] = false;
+			break;
+		}
+	}
 	
 	FILE *file;
 	size_t file_size;
@@ -87,11 +95,13 @@ static int wsMeshLoadOBJ(const char *path, uint8_t flags) {
 	size_t num_vert_normals		= 0;
 	size_t num_vert_tex_coords	= 0;
 	size_t num_faces			= 0;
+	char strbuf[500];
 	
 	// Read .obj into obj_source.
 	if((file = fopen(path, "rb"))) {
 		//Get num_verts, num_faces, num_lines from file.
 		char c = fgetc(file);
+		// printf("%d", c);
 		while(c != EOF) {
 			switch(c) {
 				case 'v': 
@@ -117,6 +127,10 @@ static int wsMeshLoadOBJ(const char *path, uint8_t flags) {
 				case '\n': 
 					num_lines++;
 					break;
+				default: 
+					//fgets(strbuf, 500, file);
+					//printf("LINE SKIP %s", strbuf);
+					break;
 			}
 			c = fgetc(file);
 		}
@@ -130,7 +144,7 @@ static int wsMeshLoadOBJ(const char *path, uint8_t flags) {
 	} else return WS_ERROR_FILE;
 	
 	// Print mesh stats once file loaded.
-	if(verbose) {
+	/* if(verbose) {
 		printf(".obj \"%s\" opened: \n", path);
 		printf("\t~%.2f kb\n", file_size * 0.0009765625f);
 		printf("\t%d lines\n", num_lines);
@@ -140,7 +154,7 @@ static int wsMeshLoadOBJ(const char *path, uint8_t flags) {
 		if(flags & WS_TEX)
 			printf("\t%d vertex texture coords\n", num_vert_tex_coords);
 		printf("\t%d faces\n", num_faces);
-	}
+	} */
 	
 	// Parse obj_source's data into Meshes struct.
 	fseek(file, 0, SEEK_SET);
@@ -152,7 +166,7 @@ static int wsMeshLoadOBJ(const char *path, uint8_t flags) {
 		// Storage of line data.
 		char type = '\0';
 		float line_data[3];
-	
+		
 		// Arrays which contain relevant mesh data.  Arrays must be spliced together before the data is finally passed on to struct meshes.
 		Vec3 *verts_data		= malloc(sizeof(*verts_data) * num_verts);		// Vertex data.
 		Vec3i *indices_data		= malloc(sizeof(*indices_data) * num_faces);	// Face/indices data.
@@ -168,15 +182,15 @@ static int wsMeshLoadOBJ(const char *path, uint8_t flags) {
 				fscanf(file, "%c %f %f %f\n", &type, &line_data[0], &line_data[1], &line_data[2]);
 				switch(type) {
 					case 'v': 
-						verts_data[verts_ndx][0]	= line_data[0];
-						verts_data[verts_ndx][1]	= line_data[1];
-						verts_data[verts_ndx][2]	= line_data[2];
+						verts_data[verts_ndx][X]	= line_data[0];
+						verts_data[verts_ndx][Y]	= line_data[1];
+						verts_data[verts_ndx][Z]	= line_data[2];
 						verts_ndx++;
 						break;
 					case 'f': // Face indices start at 1 instead of 0; subtract 1 from all indices to fix this.
-						indices_data[faces_ndx][0]	= (int)line_data[0] - 1;
-						indices_data[faces_ndx][1]	= (int)line_data[1] - 1;
-						indices_data[faces_ndx][2]	= (int)line_data[2] - 1;
+						indices_data[faces_ndx][X]	= (int)line_data[0] - 1;
+						indices_data[faces_ndx][Y]	= (int)line_data[1] - 1;
+						indices_data[faces_ndx][Z]	= (int)line_data[2] - 1;
 						faces_ndx++;
 						break;
 					
@@ -203,9 +217,9 @@ static int wsMeshLoadOBJ(const char *path, uint8_t flags) {
 		for(int i = 0; i < num_faces; i++) {
 			for(unsigned int j = 0; j < 3; j++) {
 				// For every face, store the 3 corresponding vertices in the mesh data. 
-				cur_mesh_data[mesh_data_ndx + j][0]	= verts_data[indices_data[i][j]][0];
-				cur_mesh_data[mesh_data_ndx + j][1]	= verts_data[indices_data[i][j]][1];
-				cur_mesh_data[mesh_data_ndx + j][2]	= verts_data[indices_data[i][j]][2];
+				cur_mesh_data[mesh_data_ndx + j][X]	= verts_data[indices_data[i][j]][X];
+				cur_mesh_data[mesh_data_ndx + j][Y]	= verts_data[indices_data[i][j]][Y];
+				cur_mesh_data[mesh_data_ndx + j][Z]	= verts_data[indices_data[i][j]][Z];
 			}
 			mesh_data_ndx += mesh_data_stride;
 		}
@@ -363,11 +377,13 @@ static int wsMeshLoadOBJ(const char *path, uint8_t flags) {
 						indices_data[faces_ndx][0]	= (int)line_data[0] - 1;
 						indices_data[faces_ndx][1]	= (int)line_data[3] - 1;
 						indices_data[faces_ndx][2]	= (int)line_data[6] - 1;
+						
 						// Vertex normal indices.
 						indices_data[faces_ndx + 1][0]	= (int)line_data[2] - 1;
 						indices_data[faces_ndx + 1][1]	= (int)line_data[5] - 1;
 						indices_data[faces_ndx + 1][2]	= (int)line_data[8] - 1;
 						wsMeshNormalizeVi(&indices_data[faces_ndx + 1]);
+						
 						// Vertex texture indices.
 						indices_data[faces_ndx + 2][0]	= (int)line_data[1] - 1;
 						indices_data[faces_ndx + 2][1]	= (int)line_data[4] - 1;
@@ -398,10 +414,12 @@ static int wsMeshLoadOBJ(const char *path, uint8_t flags) {
 				cur_mesh_data[mesh_data_ndx + (j * index_stride)][0]	= verts_data[indices_data[i * index_stride][j]][0];
 				cur_mesh_data[mesh_data_ndx + (j * index_stride)][1]	= verts_data[indices_data[i * index_stride][j]][1];
 				cur_mesh_data[mesh_data_ndx + (j * index_stride)][2]	= verts_data[indices_data[i * index_stride][j]][2];
+				
 				// Normals.
 				cur_mesh_data[mesh_data_ndx + (j * index_stride) + 1][0]	= vert_normals_data[indices_data[(i * index_stride) + 1][j]][0];
 				cur_mesh_data[mesh_data_ndx + (j * index_stride) + 1][1]	= vert_normals_data[indices_data[(i * index_stride) + 1][j]][1];
 				cur_mesh_data[mesh_data_ndx + (j * index_stride) + 1][2]	= vert_normals_data[indices_data[(i * index_stride) + 1][j]][2];
+				
 				// UVs.
 				cur_mesh_data[mesh_data_ndx + (j * index_stride) + 2][0]	= vert_tex_data[indices_data[(i * index_stride) + 2][j]][0];
 				cur_mesh_data[mesh_data_ndx + (j * index_stride) + 2][1]	= vert_tex_data[indices_data[(i * index_stride) + 2][j]][1];
@@ -414,7 +432,7 @@ static int wsMeshLoadOBJ(const char *path, uint8_t flags) {
 		free(vert_tex_data);
 		free(indices_data);
 	} else {
-		printf("ERROR - Invalid flags passed to wsMeshLoad(), aborting load\n");
+		printf("ERROR - Invalid flags passed to wsMeshLoadOBJ(), aborting load\n");
 		return WS_ERROR_MODEL;
 	}
 	
@@ -423,9 +441,7 @@ static int wsMeshLoadOBJ(const char *path, uint8_t flags) {
 	
 	// Yay!
 	printf("\'%s\' load success\n", path);
-	
 	meshes.num_meshes++;
-	meshes.next_meshID++;
 	return meshID;
 }
 
@@ -433,7 +449,7 @@ static int wsMeshLoadOBJ(const char *path, uint8_t flags) {
 static void wsMeshGenBuffers(unsigned int meshID, uint8_t flags) {
 	glGenBuffers(1, &meshes.vbo[meshID]);
 	glBindBuffer(GL_ARRAY_BUFFER, meshes.vbo[meshID]);
-	glBufferData(GL_ARRAY_BUFFER, meshes.buffer_size[meshes.num_meshes], meshes.data[meshID], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, meshes.buffer_size[meshID], meshes.data[meshID], GL_STATIC_DRAW);//////////////////////////////////////////////////////
 	
 	glGenVertexArrays(1, &meshes.vao[meshID]);
 	glBindVertexArray(meshes.vao[meshID]);
@@ -463,6 +479,7 @@ static void wsMeshGenBuffers(unsigned int meshID, uint8_t flags) {
 static void wsMeshDelete(unsigned int meshID) {
 	meshes.num_verts[meshID] = 0;
 	meshes.num_faces[meshID] = 0;
+	meshes.availableIDs[meshID] = false;
 	meshes.num_meshes--;
 	free(meshes.data[meshID]);
 }
@@ -470,8 +487,9 @@ static void wsMeshDelete(unsigned int meshID) {
 
 // Initialize lobj.  Call this before any mesh initialization.
 static void wsLOBJInit() {
-	meshes.num_meshes	= 0;
-	meshes.next_meshID	= 0;
+	meshes.num_meshes = 0;
+	for(size_t i = 0; i < WS_MAX_MESHES; i++)
+		meshes.availableIDs[i] = true;
 	
 	printf("lobj initialized\n");
 }
@@ -479,11 +497,14 @@ static void wsLOBJInit() {
 // Remove all meshes from memory.
 static void wsLOBJTerminate() {
 	if(meshes.num_meshes > 0) {
-		for(size_t i = 0; i < meshes.num_meshes; i++) {
-			free(meshes.data[i]);
+		for(size_t i = 0; i < WS_MAX_MESHES; i++) {
+			if(meshes.availableIDs[i] == false)
+				free(meshes.data[i]);
+			else continue;
 		}
 		meshes.num_meshes = 0;
 	}
+	printf("lobj terminated\n");
 }
 
 #endif // LOBJ_H_

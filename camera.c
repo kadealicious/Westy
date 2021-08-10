@@ -21,14 +21,17 @@ unsigned int wsCameraInit(vec3 position, vec3 rotation, float fov) {
 	cameras.fov[num_cameras] = fov;
 	
 	printf("Camera %d: position: %.2f %.2f %.2f | forward: %.2f %.2f %.2f | field of view: %.2f\n", num_cameras, 
-		cameras.position[num_cameras][0], cameras.position[num_cameras][1], cameras.position[num_cameras][2], 
-		cameras.rotation[num_cameras][0], cameras.rotation[num_cameras][1], cameras.rotation[num_cameras][2], 
+		cameras.position[num_cameras][X], cameras.position[num_cameras][Y], cameras.position[num_cameras][Z], 
+		cameras.rotation[num_cameras][PITCH], cameras.rotation[num_cameras][YAW], cameras.rotation[num_cameras][ROLL], 
 		cameras.fov[num_cameras]);
 	
 	return num_cameras++;
 }
 
 unsigned int wsCameraGetActive() { return cameras.active; }
+vec3 *wsCameraGetPosition(unsigned int cameraID) { return &(cameras.position[cameras.active]); }
+vec3 *wsCameraGetRotation(unsigned int cameraID) { return &(cameras.rotation[cameras.active]); }
+
 void wsCameraSetActive(unsigned int cameraID) { cameras.active = cameraID; }
 
 void wsCameraGenViewMatrix(unsigned int cameraID, mat4 *view_dest) {
@@ -39,15 +42,15 @@ void wsCameraGenViewMatrix(unsigned int cameraID, mat4 *view_dest) {
 
 // Update camera forward, up, and right vectors according to euler vector.  Only used internally.
 void wsCameraSyncRotation(unsigned int cameraID) {
-	cameras.rotation[cameraID][0]	= cos(glm_rad(cameras.euler[cameraID][YAW])) * cos(glm_rad(cameras.euler[cameraID][PITCH]));
-	cameras.rotation[cameraID][1]	= sin(glm_rad(cameras.euler[cameraID][PITCH]));
-	cameras.rotation[cameraID][2]	= sin(glm_rad(cameras.euler[cameraID][YAW])) * cos(glm_rad(cameras.euler[cameraID][PITCH]));
+	cameras.rotation[cameraID][PITCH]	= cos(glm_rad(cameras.euler[cameraID][YAW])) * cos(glm_rad(cameras.euler[cameraID][PITCH]));
+	cameras.rotation[cameraID][YAW]		= sin(glm_rad(cameras.euler[cameraID][PITCH]));
+	cameras.rotation[cameraID][ROLL]	= sin(glm_rad(cameras.euler[cameraID][YAW])) * cos(glm_rad(cameras.euler[cameraID][PITCH]));
 	glm_normalize(cameras.rotation[cameraID]);
 	
 	// glm_vec3_copy() gives a warning and warnings stress me out.
-	cameras.up[cameraID][0] = WS_WORLD_UP[0];
-	cameras.up[cameraID][1] = WS_WORLD_UP[1];
-	cameras.up[cameraID][2] = WS_WORLD_UP[2];
+	cameras.up[cameraID][PITCH]	= WS_WORLD_UP[PITCH];
+	cameras.up[cameraID][YAW]	= WS_WORLD_UP[YAW];
+	cameras.up[cameraID][ROLL]	= WS_WORLD_UP[ROLL];
 	glm_normalize(cameras.up[cameraID]);
 	
 	glm_vec3_cross(cameras.rotation[cameraID], cameras.up[cameraID], cameras.right[cameraID]);
@@ -61,9 +64,9 @@ void wsCameraSyncRotationDamped(unsigned int cameraID) {
 	glm_normalize(cameras.rotation[cameraID]);
 	
 	// glm_vec3_copy() gives a warning and warnings stress me out.
-	cameras.up[cameraID][0] = WS_WORLD_UP[0];
-	cameras.up[cameraID][1] = WS_WORLD_UP[1];
-	cameras.up[cameraID][2] = WS_WORLD_UP[2];
+	cameras.up[cameraID][PITCH] = WS_WORLD_UP[PITCH];
+	cameras.up[cameraID][YAW] = WS_WORLD_UP[YAW];
+	cameras.up[cameraID][ROLL] = WS_WORLD_UP[ROLL];
 	glm_normalize(cameras.up[cameraID]);
 	
 	glm_vec3_cross(cameras.rotation[cameraID], cameras.up[cameraID], cameras.right[cameraID]);

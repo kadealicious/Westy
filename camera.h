@@ -15,14 +15,13 @@ typedef struct wsCameras {
 	vec3 euler_interp;
 } wsCamera;
 
-enum EULER_ANGLES { PITCH, YAW, ROLL };
-enum RELATIVE_DIRECTIONS { RIGHT, UP, FORWARD, LEFT, DOWN, BACKWARD };
-
 struct wsCameras cameras;
 
 unsigned int wsCameraInit(vec3 position, vec3 rotation, float fov);
 
 unsigned int wsCameraGetActive();
+vec3 *wsCameraGetPosition(unsigned int cameraID);
+vec3 *wsCameraGetRotation(unsigned int cameraID);
 
 void wsCameraSetActive(unsigned int cameraID);
 void wsCameraGenViewMatrix(unsigned int cameraID, mat4 *view_dest);

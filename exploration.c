@@ -4,15 +4,18 @@
 #include"text.h"
 #include"input.h"
 #include"entities.h"
+#include"lobj.h"
 
 float time_of_day = 12.0f;
 unsigned int day = 1;
 
-unsigned int obj_crate;
-unsigned int env_desert;
+unsigned int obj_crate, obj_brickwall, env_desert, 
+	obj_redleather, obj_obsidian, obj_lilypads, obj_damascussteel;
+
+unsigned int light_counter = 0;
 
 void wsExploreInit() {
-	wsLightInitp(0, (vec3){-3.0f, 0.0f, 0.0f}, (vec3){0.4f, 0.85f, 0.0f}, 0.5f, 0.5f, true);
+	wsLightInitp(light_counter++, (vec3){-1.5f, 0.0f, 0.0f}, (vec3){0.4f, 0.85f, 0.0f}, 0.5f, 0.5f, true);
 	wsLightInitf(0, cameras.position[wsCameraGetActive()], cameras.rotation[wsCameraGetActive()], (vec3){0.7f, 0.7f, 0.5f}, 1.0f, 0.5f, 17.5f, false);
 	
 	wsLightInitd(0, (vec3){-90.0f, 0.0f, 0.0f}, (vec3){0.8f, 0.9f, 1.0f}, 1.0f, false);// Sun.
@@ -25,7 +28,15 @@ void wsExploreInit() {
 	wsCameraInit((vec3){0.0f, 0.0f, 3.0f}, (vec3){0.0f, -90.0f, 0.0f}, 90.0f);
 	wsCameraSetActive(0);
 	
-	obj_crate = wsObjectInit((vec3){0.0f, 0.0f, 3.0f}, (vec3){-45.0f, 45.0f, 45.0f}, "models/test/crate/crate.obj", WS_FACES | WS_NORMALS | WS_TEX, "models/test/crate/woodcrate_diffuse.png", "models/test/crate/woodcrate_specular.png");
+	unsigned int mesh_crate = wsMeshLoadOBJ("models/test/crate/crate.obj", WS_FACES | WS_NORMALS | WS_TEX);
+	unsigned int mesh_cube = wsMeshLoadOBJ("models/test/cube.obj", WS_FACES | WS_NORMALS | WS_TEX);
+	obj_crate = wsObjectInit((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.0f, 0.0f, 0.0f}, mesh_crate, "models/test/crate/diffuse.png", "models/test/crate/specular.png", "models/test/crate/normal.png");
+	obj_brickwall = wsObjectInit((vec3){3.0f, 0.0f, 0.0f}, (vec3){0.0f, 0.0f, 0.0f}, mesh_cube, "models/test/brickwall/diffuse.jpg", "models/test/brickwall/specular.jpg", "models/test/brickwall/normal.jpg");
+	obj_redleather = wsObjectInit((vec3){6.0f, 0.0f, 0.0f}, (vec3){0.0f, 0.0f, 0.0f}, mesh_cube, "models/test/redleather/diffuse.jpg", "models/test/redleather/specular.jpg", "models/test/redleather/normal.jpg");
+	obj_obsidian = wsObjectInit((vec3){9.0f, 0.0f, 0.0f}, (vec3){0.0f, 0.0f, 0.0f}, mesh_cube, "models/test/obsidian/diffuse.jpg", "models/test/obsidian/specular.jpg", "models/test/obsidian/normal.jpg");
+	obj_lilypads = wsObjectInit((vec3){12.0f, 0.0f, 0.0f}, (vec3){0.0f, 0.0f, 0.0f}, mesh_cube, "models/test/lilypads/diffuse.jpg", "models/test/lilypads/specular.jpg", "models/test/lilypads/normal.jpg");
+	obj_damascussteel = wsObjectInit((vec3){15.0f, 0.0f, 0.0f}, (vec3){0.0f, 0.0f, 0.0f}, mesh_cube, "models/test/damascussteel/diffuse.jpg", "models/test/damascussteel/specular.jpg", "models/test/damascussteel/normal.jpg");
+	// env_desert = wsObjectInit((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.0f, 0.0f, 0.0f}, "models/test/env_desert/untitled.obj", WS_FACES | WS_NORMALS | WS_TEX, "models/test/env_desert/diffuse.png", "models/test/env_desert/specular.png", "models/test/env_desert/normal.png");
 	
 	printf("You may now begin exploring!\n");
 }
@@ -106,6 +117,8 @@ void wsExploreDebugLights() {
 			printf("Turning on pointlights...\n");
 		else printf("Turning off pointlights...\n");
 	}
+	if(wsInputGetPress(GLFW_KEY_0) && light_counter < WS_MAX_POINTLIGHTS)
+		wsLightInitp(light_counter++, *wsCameraGetPosition(wsCameraGetActive()), (vec3){0.4f, 0.85f, 0.0f}, 0.5f, 0.5f, true);
 	
 	// Spotlights.
 	static bool flashlight_toggle = false;
@@ -148,10 +161,6 @@ void wsExploreUpdate(unsigned int delta_time) {
 	if(!is_fly)
 		wsCameraMakeFPS(wsCameraGetActive(), 2.5f, 89.0f);
 	else wsCameraMakeFly(wsCameraGetActive(), 2.5f, 89.0f);
-	
-	// Cube visibility toggling.
-	if(wsInputGetPress(GLFW_KEY_X))
-		wsObjectToggleVisible(obj_crate);
 	
 	// Flashlight.
 	wsLightSetPositionf(0, cameras.position[wsCameraGetActive()]);

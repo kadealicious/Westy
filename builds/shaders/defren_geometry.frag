@@ -6,17 +6,19 @@ layout(location = 2) out vec4 g_albedospec;
 
 in vec2 tex_coord;
 in vec3 frag_pos;
-in vec3 normal;
 
 uniform sampler2D texture_diffuse;
 uniform sampler2D texture_specular;
+uniform sampler2D texture_normal;
 
 void main() {
-	// Store position data in first g-buffer texture.
 	g_position = frag_pos;
-	// Store normal data in second g-buffer texture.
-	g_normal = normalize(normal);
-	// Store diffuse per-fragment color.
+	
+	// Normal mapping.
+	// mat3 tbn = mat3(g_tangent, g_bitangent, g_normal);
+	vec3 normal_map = (texture(texture_normal, tex_coord).rgb * 2.0) - 1.0;
+	g_normal = normalize(normal_map);// normalize(tbn * normal_map);
+	
 	g_albedospec.rgb = texture(texture_diffuse, tex_coord).rgb;
 	// Store specular intensity in alpha component of albedo-spec texture.
 	g_albedospec.a = texture(texture_specular, tex_coord).r;

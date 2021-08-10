@@ -36,8 +36,10 @@ entities.o: entities.c entities.h
 exploration.o: exploration.c exploration.h
 	$(CC) $(CFLAGS) -c $^
 
-.PHONY: a clean
+.PHONY: a clean cleanheaderlibs
 a: $(OBJ)
 	$(CC) $(CFLAGS) -o builds/$@ $^ $(LIB)
 clean:
 	-del edit *.o
+cleanheaderlibs: 
+	-del edit lobj.h texturing.h

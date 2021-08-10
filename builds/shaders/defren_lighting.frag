@@ -4,6 +4,7 @@
 #define MAX_SPOTLIGHTS 25
 #define MAX_DIRECTIONLIGHTS 5
 #define SSAO_SAMPLES 6
+#define SHININESS 8.0
 
 in vec2 tex_coord;
 
@@ -67,14 +68,12 @@ float spec_sample = texture(g_albedospec, tex_coord).a;
 vec3 light_color = albedo_sample * 0.01;
 vec3 view_dir = normalize(view_pos - frag_pos_sample);
 
+float rand(float co)	{ return fract(sin(co * vec2(12.9898, 78.233)) * 43758.5453).x; }
+
 void main() {
-	vec3 sky_color = vec3(0.0);
 	for(uint i = 0; i < MAX_POINTLIGHTS; i++)		{ light_color += CalculatePointLight(i); }
 	for(uint i = 0; i < MAX_SPOTLIGHTS; i++)		{ light_color += CalculateSpotLight(i); }
-	for(uint i = 0; i < MAX_DIRECTIONLIGHTS; i++) {
-		light_color += CalculateDirectionLight(i);
-		sky_color += directionlights.color[i] * directionlights.intensity[i] * directionlights.toggle[i] * 0.2;
-	}
+	for(uint i = 0; i < MAX_DIRECTIONLIGHTS; i++)	{ light_color += CalculateDirectionLight(i); }
 	
 	// Increase light color fragment;
 	float light_color_magnitude;
@@ -95,10 +94,9 @@ void main() {
 	dither_color.g = BayerFindClosest(xdither, ydither, light_color.g);
 	dither_color.b = BayerFindClosest(xdither, ydither, light_color.b);
 	
-	float specular_color = max(spec_sample * 4, 0.2);
-	
-	vec3 final_color = mix(dither_color * specular_color, sky_color, floor(specular_color));
-	frag_color = vec4(final_color, 1.0);
+	// frag_color = vec4(vec3(spec_sample), 1.0);
+	frag_color = vec4(dither_color, 1.0);
+	// frag_color = vec4((normal_sample * 0.5) + 0.5, 1.0);
 }
 
 // Point lights.
@@ -108,8 +106,8 @@ vec3 CalculatePointLight(uint lightID) {
 	vec3 diffuse = max(dot(normal_sample, light_dir), 0.0) * albedo_sample * pointlights.color[lightID];
 	
 	// Specular.
-	vec3 bounce_dir = normalize(light_dir + view_dir);
-	float spec_strength = pow(max(dot(normal_sample, bounce_dir), 0.0), 8.0);
+	vec3 bounce_dir = normalize(light_dir);
+	float spec_strength = pow(max(dot(normal_sample, bounce_dir), 0.0), SHININESS);
 	vec3 specular = pointlights.color[lightID] * spec_strength * spec_sample;
 	
 	// Attenuation.
@@ -128,8 +126,8 @@ vec3 CalculateSpotLight(uint lightID) {
 	vec3 diffuse = max(dot(normal_sample, light_dir), 0.0) * albedo_sample * spotlights.color[lightID];
 	
 	// Specular.
-	vec3 bounce_dir = normalize(light_dir + view_dir);
-	float spec_strength = pow(max(dot(normal_sample, bounce_dir), 0.0), 8.0);
+	vec3 bounce_dir = normalize(light_dir);
+	float spec_strength = pow(max(dot(normal_sample, bounce_dir), 0.0), SHININESS);
 	vec3 specular = spotlights.color[lightID] * spec_strength * spec_sample;
 	
 	// Attenuation.
@@ -157,8 +155,8 @@ vec3 CalculateDirectionLight(uint lightID) {
 	vec3 diffuse = max(dot(normal_sample, light_dir), 0.0) * albedo_sample * directionlights.color[lightID];
 	
 	// Specular.
-	vec3 bounce_dir = normalize(light_dir + view_dir);
-	float spec_strength = pow(max(dot(normal_sample, bounce_dir), 0.0), 8.0);
+	vec3 bounce_dir = normalize(light_dir);
+	float spec_strength = pow(max(dot(normal_sample, bounce_dir), 0.0), SHININESS);
 	vec3 specular = directionlights.color[lightID] * spec_strength * spec_sample;
 	
 	vec3 light_color = (ambient + diffuse + specular) * directionlights.intensity[lightID] * directionlights.toggle[lightID];

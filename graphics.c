@@ -27,7 +27,7 @@ unsigned int text_shader = WS_NONE, text_billboard_shader = WS_NONE;
 unsigned int light_shader = WS_NONE;
 
 unsigned int mesh_cube;
-unsigned int cd, cs;
+unsigned int mesh_lightball;
 
 int wsGraphicsInit();
 void wsGraphicsInitText();
@@ -52,6 +52,7 @@ int wsGraphicsInit() {
 	wsGraphicsInitLighting();
 	
 	mesh_cube = wsMeshLoadOBJ("models/test/cube.obj", WS_FACES | WS_TEX | WS_NORMALS);
+	mesh_lightball = wsMeshLoadOBJ("models/test/lightball.obj", WS_FACES);
 	
 	printf("Graphics initialized\n");
 	return WS_OKAY;
@@ -78,10 +79,8 @@ void wsGraphicsRenderMesh(mat4 *matrix_model, unsigned int shaderID, unsigned in
 void wsGraphicsRenderObjects(mat4 *matrix_model, unsigned int shaderID) {
 	for(size_t i = 0; i < WS_MAX_OBJS; i++) {
 		// If there is no mesh to draw, don't.
-		if(wsObjectGetMeshID(i) == WS_NONE || wsObjectGetVisible(i) == false)
+		if(wsObjectGetMeshID(i) == WS_NONE || wsObjectGetVisible(i) == false || wsObjectGetDiffuseID(i) == WS_NONE)
 			continue;
-		
-		glm_mat4_identity(*matrix_model);
 		
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, wsTextureGetGL(wsObjectGetDiffuseID(i)));
@@ -91,6 +90,18 @@ void wsGraphicsRenderObjects(mat4 *matrix_model, unsigned int shaderID) {
 		glBindTexture(GL_TEXTURE_2D, wsTextureGetGL(wsObjectGetSpecularID(i)));
 		wsShaderSetInt(shaderID, "texture_specular", 1);
 		
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, wsTextureGetGL(wsObjectGetNormalID(i)));
+		wsShaderSetInt(shaderID, "texture_normal", 2);
+		
+		vec3 obj_position = {wsObjectGetPositionX(i), wsObjectGetPositionY(i), wsObjectGetPositionZ(i)};
+		vec3 obj_rotation = {wsObjectGetRotationX(i), wsObjectGetRotationY(i), wsObjectGetRotationZ(i)};
+		
+		glm_mat4_identity(*matrix_model);
+		glm_translate(*matrix_model, obj_position);
+		glm_rotate(*matrix_model, obj_rotation[PITCH], (float*)WS_WORLD_RIGHT);
+		glm_rotate(*matrix_model, obj_rotation[YAW], (float*)WS_WORLD_UP);
+		glm_rotate(*matrix_model, obj_rotation[ROLL], (float*)WS_WORLD_FORWARD);
 		wsShaderSetMat4(shaderID, "model", matrix_model);
 		wsShaderSetNormalMatrix(shaderID, matrix_model);
 		
@@ -142,16 +153,21 @@ void wsGraphicsWorldRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_p
 // Render lights.
 void wsGraphicsLightsRender(mat4 *matrix_model, mat4 *matrix_view, mat4 *matrix_perspective, mat4 *matrix_ortho) {
 	// Draw pointlight cube.  Must be done in forward render pass.
-	glm_mat4_identity(*matrix_model);
-	glm_translate(*matrix_model, pointlights.position[0]);
-	glm_scale(*matrix_model, (vec3){0.1f, 0.1f, 0.1f});
-	
-	wsShaderUse(light_shader);
-	wsShaderSetVec3(light_shader, "light_color", pointlights.color[0]);
-	wsShaderSetInt(light_shader, "toggle", (int)pointlights.toggle[0]);
-	wsShaderSetMVP(light_shader, matrix_model, matrix_view, matrix_perspective);
-	
-	wsGraphicsRenderMesh(matrix_model, light_shader, mesh_cube);
+	for(size_t i = 0; i < WS_MAX_POINTLIGHTS; i++) {
+		if(!pointlights.toggle[i])
+			continue;
+		
+		glm_mat4_identity(*matrix_model);
+		glm_translate(*matrix_model, pointlights.position[i]);
+		glm_scale(*matrix_model, (vec3){0.2f, 0.2f, 0.2f});
+		
+		wsShaderUse(light_shader);
+		wsShaderSetVec3(light_shader, "light_color", pointlights.color[i]);
+		wsShaderSetInt(light_shader, "toggle", (int)pointlights.toggle[i]);
+		wsShaderSetMVP(light_shader, matrix_model, matrix_view, matrix_perspective);
+		
+		wsGraphicsRenderMesh(matrix_model, light_shader, mesh_lightball);
+	}
 }
 
 // Render UI.

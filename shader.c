@@ -122,7 +122,7 @@ void wsShaderSetNormalMatrix(unsigned int shaderID, mat4 *model) {
 	glm_mat4_inv_fast(*model, normal4);
 	glm_mat4_transpose(normal4);
 	glm_mat4_pick3(normal4, normal3);
-	wsShaderSetMat3(shaderID, "normal_matrix", &normal3);	
+	wsShaderSetMat3(shaderID, "normal_matrix", &normal3);
 }
 
 void wsShaderUpdateLightsp(unsigned int shaderID) {
